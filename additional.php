@@ -1,6 +1,9 @@
 <?php
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 
+if (version_compare(phpversion(), "5.2.0", '<'))
+    die("\nMySQL Query Builder isn't functional for PHP versions earlier than 5.2\n");
+
 class QBTable
 {
     private $table_name = null;
