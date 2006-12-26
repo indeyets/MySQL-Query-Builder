@@ -1,4 +1,5 @@
 <?php
+/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 require_once "..".DIRECTORY_SEPARATOR."autoload.php";
 
 $q = new SelectQuery(array('my_table', 'another_table'));
