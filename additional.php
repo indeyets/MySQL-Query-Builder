@@ -94,16 +94,28 @@ class Operator implements MQB_Condition
 
 class NotOp extends Operator
 {
-    public function __construct(array $content)
-    {
-        if (count($content) != 1)
-            throw new InvalidArgumentException("NotOp takes an array of exactly one Condition or Operator");
+    private $my_content = null;
 
-        parent::__construct($content);
- 
-        $this->startSql = "NOT (";
-        $this->implodeSql = "";
-        $this->endSql = ")";
+    public function __construct($content)
+    {
+        if (is_array($content)) {
+            // compatibility with "legacy" API
+            if (count($content) != 1)
+                throw new InvalidArgumentException("NotOp takes an array of exactly one Condition or Operator");
+
+            $content = $content[0];
+        }
+
+        if (!is_object($content) or !($content instanceof MQB_Condition)) {
+            throw new InvalidArgumentException("Operators should be given valid Operators or Conditions as parameters");
+        }
+
+        $this->my_content = $content;
+    }
+
+    public function getSql(array &$parameters)
+    {
+        return 'NOT ('.$this->my_content->getSql($parameters).')';
     }
 }
 

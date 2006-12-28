@@ -34,9 +34,9 @@ class SelectQueryTest extends PHPUnit_Framework_TestCase
             new Condition('>', new Field('id'), 12),
             new OrOp(array(
                 new Condition('=', new Field('status'), 'demolished'),
-                new NotOp(array(
+                new NotOp(
                     new Condition('<', new Field('age'), 5)
-                ))
+                )
             ))
         )));
 
