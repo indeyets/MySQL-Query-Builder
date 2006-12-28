@@ -23,6 +23,11 @@
 if (version_compare(phpversion(), "5.2.0", '<'))
     die("\nMySQL Query Builder isn't functional for PHP versions earlier than 5.2\n");
 
+interface MQB_Condition
+{
+    public function getSql(array &$parameters);
+}
+
 class QBTable
 {
     private $table_name = null;
@@ -53,7 +58,7 @@ class QBTable
     }
 }
 
-class Operator
+class Operator implements MQB_Condition
 {
     private $content = array();
     private $opTypes = array("NotOp","AndOp","OrOp","XorOp","Condition");
@@ -66,7 +71,7 @@ class Operator
         $this->content = $content;
     }
 
-    public function getSql(&$parameters)
+    public function getSql(array &$parameters)
     {
         $sqlparts = array();
         foreach ($this->content as $c) {
@@ -120,7 +125,7 @@ class XorOp extends Operator
     }
 }
 
-class Condition
+class Condition implements MQB_Condition
 {
     private $content=array();
     private $validConditions=array("=","<>","<",">",">=","<=","like","is null","find_in_set","and","or","xor");
@@ -142,7 +147,7 @@ class Condition
         $this->content=array($comparison,$left,$right);
     }
 
-    public function getSql(&$parameters)
+    public function getSql(array &$parameters)
     {
         $comparison = $this->content[0];
         $leftpart = $this->content[1]->getSql($parameters);

@@ -25,11 +25,14 @@ class BasicQuery
     private $limit;
     private $conditions = null;
     private $parameters;
-    private $sql = false;
-    protected $from = array();
+    private $sql = null;
     private $orderby;
     private $orderdirection;
     private $havings;
+
+    protected $from = array();
+
+
 
     protected function __construct(array $tables)
     {
@@ -56,33 +59,41 @@ class BasicQuery
         $this->reset();
     }
 
-    public function setWhere($conditions)
+    public function setWhere($conditions = null)
     {
-        if ($conditions === null)
+        if (null === $conditions) {
             $this->conditions = null;
-        elseif (is_object($conditions))
+        } elseif ($conditions instanceof MQB_Condition) {
             $this->conditions = clone $conditions;
-        else 
+        } else {
             throw new InvalidArgumentException('Условия where не являются допустимым объектом');
+        }
 
         $this->reset();
     }
-    public function setHaving ($conditions)
+
+    public function setHaving($conditions)
     {
-        $this->havings=$conditions;
+        $this->havings = $conditions;
         $this->reset();
     }
-    public function setOrderby (array $orderlist, array $orderdirectionlist = null)
+
+    public function setOrderby(array $orderlist, array $orderdirectionlist)
     {
         foreach ($orderlist as $field)
-            if (!($field instanceof Field)) throw new InvalidArgumentException('Допускается только массив объектов типа Field');
-        $this->orderby=$orderlist;
-        if ($orderdirectionlist)
-            $this->orderdirection=$orderdirectionlist;
-        else 
+            if (!($field instanceof Field))
+                throw new InvalidArgumentException('Допускается только массив объектов типа Field');
+
+        $this->orderby = $orderlist;
+
+        if (null === $orderdirectionlist)
             $this->orderdirection = array();
+        else 
+            $this->orderdirection = $orderdirectionlist;
+
         $this->reset();
     }
+
     public function setLimit($limit, $offset=0)
     {
         $this->limit = array(new Parameter(intval($limit)), new Parameter(intval($offset)));
@@ -90,6 +101,7 @@ class BasicQuery
     }
 
 
+    //
     public function showTables()
     {
         $res = array();
@@ -100,18 +112,21 @@ class BasicQuery
         return $res;
     }
 
-    public function showConditions() {
+    public function showConditions()
+    {
         return $this->conditions;
     }
 
+
+    // internal stuff
     protected function getFrom(&$parameters)
     {
-        $sql = " FROM ";
         $froms = array();
         for ($i = 0; $i < count($this->from); $i++) {
-            $froms[] = $this->from[$i]." as t".$i;
+            $froms[] = $this->from[$i].' AS `t'.$i.'`';
         }
-        $sql .= implode(", ", $froms);
+
+        $sql = ' FROM '.implode(", ", $froms);
 
         return $sql;
     }
@@ -132,6 +147,7 @@ class BasicQuery
         $sql .= $this->havings->getSql($parameters);
         return $sql;
     }
+
     protected function getOrderby(&$parameters)
     {
         if (!$this->orderby || !is_array($this->orderby))
@@ -146,39 +162,35 @@ class BasicQuery
         $sql .= implode(", ", $sqls);
         return $sql;
     }
+
     protected function getLimit(&$parameters)
     {
         if ($this->limit[0]->getParameters() <= 0)
             return "";
-        return " LIMIT ".$this->limit[1]->getSql($parameters).", ".$this->limit[0]->getSql($parameters)." ";
+
+        return " LIMIT ".$this->limit[0]->getSql($parameters).' OFFSET '.$this->limit[1]->getSql($parameters);
     }
 
     protected function reset()
     {
         $this->paramaters = array();
-        $this->sql = false;
+        $this->sql = null;
     }
 
+    // get your PDO string here
     public function sql()
     {
-        if (!$this->sql) {
+        if (null === $this->sql) {
             $this->parameters = array();
             $this->sql = $this->getSql($this->parameters);
         }
+
         return $this->sql;
     }
 
+    // get your PDO parameters here
     public function parameters()
     {
         return $this->parameters;
-    }
-
-    public function countall()
-    {
-        $this->paramlist = array();
-        if ($this->conditions)
-            $this->conditions->countall($this->paramlist);
-
-        return $this->paramlist;
     }
 }

@@ -82,8 +82,9 @@ class SelectQuery extends BasicQuery
             return "SELECT ".implode(", ", $sqls);
         }
 
-        return "SELECT t0.*";
+        return 'SELECT `t0`.*';
     }
+
     private function getGroupby(&$parameters)
     {
         if ($this->groupby === null)
