@@ -28,6 +28,11 @@ interface MQB_Condition
     public function getSql(array &$parameters);
 }
 
+interface MQB_Field
+{
+    public function getSql(array &$parameters);
+}
+
 class QBTable
 {
     private $table_name = null;
@@ -61,12 +66,12 @@ class QBTable
 class Operator implements MQB_Condition
 {
     private $content = array();
-    private $opTypes = array("NotOp","AndOp","OrOp","XorOp","Condition");
+    private $opTypes = array("NotOp", "AndOp", "OrOp", "XorOp", "Condition");
     protected $startSql;
     protected $implodeSql;
     protected $endSql;
 
-    public function __construct(array $content)
+    protected function __construct(array $content)
     {
         $this->content = $content;
     }
@@ -74,10 +79,13 @@ class Operator implements MQB_Condition
     public function getSql(array &$parameters)
     {
         $sqlparts = array();
+
         foreach ($this->content as $c) {
-            if (is_object($c) and ($c instanceof Operator or $c instanceof Condition)) {
-                $sqlparts[] = $c->getSql($parameters);
+            if (!is_object($c) or !($c instanceof MQB_Condition)) {
+                throw new InvalidArgumentException("Operators should be given valid Operators or Conditions as parameters");
             }
+
+            $sqlparts[] = $c->getSql($parameters);
         }
 
         return $this->startSql.implode($this->implodeSql, $sqlparts).$this->endSql;
@@ -88,32 +96,41 @@ class NotOp extends Operator
 {
     public function __construct(array $content)
     {
+        if (count($content) != 1)
+            throw new InvalidArgumentException("NotOp takes an array of exactly one Condition or Operator");
+
         parent::__construct($content);
-        $this->startSql=" NOT (";
-        $this->implodeSql="";
-        $this->endSql=")";
+ 
+        $this->startSql = "NOT (";
+        $this->implodeSql = "";
+        $this->endSql = ")";
     }
 }
+
 class AndOp extends Operator
 {
     public function __construct(array $content)
     {
         parent::__construct($content);
-        $this->startSql="( ";
-        $this->implodeSql=" AND ";
-        $this->endSql=" )";
+
+        $this->startSql = "("; 
+        $this->implodeSql = " AND ";
+        $this->endSql = ")";
     }
 }
+
 class OrOp extends Operator
 {
     public function __construct(array $content)
     {
         parent::__construct($content);
-        $this->startSql="( ";
-        $this->implodeSql=" OR ";
-        $this->endSql=" )";
+
+        $this->startSql = "(";
+        $this->implodeSql = " OR ";
+        $this->endSql = ")";
     }
 }
+
 class XorOp extends Operator
 {
     public function __construct(array $content)
@@ -175,10 +192,11 @@ class Condition implements MQB_Condition
     }
 }
 
-class Field
+class Field implements MQB_Field
 {
     private $name;
     private $table;
+
     public function __construct($name, $table=0)
     {
         if (!$name)
@@ -186,61 +204,71 @@ class Field
         $this->table=$table;
         $this->name=$name;
     }
-    public function getSql(&$parameters)
+
+    public function getSql(array &$parameters)
     {
-        return "t".$this->table.".`".$this->name.'`';
+        return '`t'.$this->table."`.`".$this->name.'`';
     }
+
     public function getTable()
     {
         return $this->table;
     }
+
     public function getName()
     {
         return $this->name;
     }
 }
 
-class sqlFunction
+class sqlFunction implements MQB_Field
 {
     private $field;
     private $name;
     private $values;
-    private $validNames=array('substring','year','month','day','date');
-    public function __construct($name,$field,array $values = null)
+    private $validNames = array('substring', 'year', 'month', 'day', 'date');
+
+    public function __construct($name, Field $field, array $values = null)
     {
-        if (!$name || !in_array($name,$this->validNames))
+        if (!is_string($name) or !in_array($name, $this->validNames))
             throw new RangeException('Недопустимое имя функции');
-        if (!$field || !is_object($field))
-            throw new RangeException('Первый параметр может быть только объектом');
-        $this->field=$field;
-        $this->name=$name;
-        $this->values=$values;
+
+        $this->field = $field;
+        $this->name = $name;
+        $this->values = $values;
     }
-    public function getSql(&$parameters)
+
+    public function getSql(array &$parameters)
     {
-        $result=$this->name."(".$this->field->getSql($parameters);
-        if (!is_null($this->values)) foreach ($this->values as $v) {
-            if (is_object($v)) {
-                if (method_exists($v,'getSql')) {
-                    $result.=",".$v->getSql($parameters);
+        $result = $this->name."(".$this->field->getSql($parameters);
+
+        if (null !== $this->values) {
+            foreach ($this->values as $v) {
+                if (is_object($v)) {
+                    if (method_exists($v,'getSql')) {
+                        $result .= ",".$v->getSql($parameters);
+                    }
+                } else {
+                    $result .= ",".$v;
                 }
-            } else {
-                $result.=",".$v;
             }
         }
+
         return $result.")";
     }
+
     public function getField()
     {
         return $this->field;
     }
+
     public function getName()
     {
         return $this->name;
     }
 }
 
-class Aggregate
+class Aggregate implements MQB_Field
 {
     private $aggregate;
     private $name;
@@ -254,10 +282,12 @@ class Aggregate
             throw new RangeException('Недопустимая аггрегирующая функция');
 
         $this->aggregate = $aggregate;
+
         if (null !== $field)
             $this->field = $field;
     }
-    public function getSql(&$parameters)
+
+    public function getSql(array &$parameters)
     {
         $field_sql = (null === $this->field ? '*' : $this->field->getSql($parameters));
 
@@ -268,20 +298,24 @@ class Aggregate
 class Parameter
 {
     private $content;
+
     public function __construct($content)
     {
         $this->content = $content;
     }
-    public function getSql(&$parameters)
+
+    public function getSql(array &$parameters)
     {
-        $this->number=(count($parameters)+1);
-        $parameters[":p".$this->number]=$this->content;
+        $this->number = count($parameters) + 1;
+        $parameters[":p".$this->number] = $this->content;
         return ":p".$this->number;
     }
+
     public function getParameters()
     {
         return $this->content;
     }
+
     public function getNumber()
     {
         return $this->number;

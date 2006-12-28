@@ -142,25 +142,26 @@ class BasicQuery
     protected function getHaving(&$parameters)
     {
         if (!$this->havings)
-        return "";
-        $sql = " HAVING ";
-        $sql .= $this->havings->getSql($parameters);
-        return $sql;
+            return "";
+
+        return " HAVING ".$this->havings->getSql($parameters);
     }
 
     protected function getOrderby(&$parameters)
     {
         if (!$this->orderby || !is_array($this->orderby))
-        return "";
-        $sql = " ORDER BY ";
+            return "";
+
         foreach ($this->orderby as $i=>$orderby) {
-            $direction="";
             if (array_key_exists($i, $this->orderdirection) && $this->orderdirection[$i])
-                    $direction = " DESC";
+                $direction = ' DESC';
+            else
+                $direction = ' ASC';
+
             $sqls[] = $orderby->getSql($parameters).$direction;
         }
-        $sql .= implode(", ", $sqls);
-        return $sql;
+
+        return " ORDER BY ".implode(", ", $sqls);
     }
 
     protected function getLimit(&$parameters)

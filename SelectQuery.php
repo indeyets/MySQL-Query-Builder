@@ -34,7 +34,7 @@ class SelectQuery extends BasicQuery
         $selects = array();
 
         foreach ($_selects as $s) {
-            if (!($s instanceof Field) and !($s instanceof Aggregate) and !($s instanceof sqlFunction))
+            if (!($s instanceof MQB_Field))
                 throw new RangeException('Допустимые значения - объекты классов Field, sqlFunction и Aggregate');
 
             $this->selects[] = $s;
@@ -42,19 +42,19 @@ class SelectQuery extends BasicQuery
 
         if (count($selects) > 0) {
             $this->selects = $selects;
-            $this->reset();     
+            $this->reset();
         }
     }
 
     public function setGroupby(array $orderlist)
     {
         foreach ($orderlist as $field)
-            if (!($field instanceof Field) && !($field instanceof Aggregate) && !($field instanceof sqlFunction))
+            if (!($field instanceof MQB_Field))
                 throw new InvalidArgumentException('Допускается только массив объектов типа Field');
 
         $this->groupby = $orderlist;
         $this->reset();
-    }    
+    }
 
     public function showGroupby()
     {
@@ -74,15 +74,16 @@ class SelectQuery extends BasicQuery
 
     private function getSelect(&$parameters)
     {
-        if (null !== $this->selects) {
-            $sqls = array();
-            foreach ($this->selects as $s) {
-                $sqls[] = $s->getSql($parameters);
-            }
-            return "SELECT ".implode(", ", $sqls);
+        if (null === $this->selects) {
+            return 'SELECT `t0`.*';
         }
 
-        return 'SELECT `t0`.*';
+        $sqls = array();
+        foreach ($this->selects as $s) {
+            $sqls[] = $s->getSql($parameters);
+        }
+
+        return "SELECT ".implode(", ", $sqls);
     }
 
     private function getGroupby(&$parameters)
