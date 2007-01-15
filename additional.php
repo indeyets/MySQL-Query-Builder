@@ -66,7 +66,6 @@ class QBTable
 class Operator implements MQB_Condition
 {
     private $content = array();
-    private $opTypes = array("NotOp", "AndOp", "OrOp", "XorOp", "Condition");
     protected $startSql;
     protected $implodeSql;
     protected $endSql;
@@ -148,19 +147,19 @@ class XorOp extends Operator
     public function __construct(array $content)
     {
         parent::__construct($content);
-        $this->startSql="( ";
-        $this->implodeSql=" XOR ";
-        $this->endSql=" )";
+        $this->startSql = "(";
+        $this->implodeSql = " XOR ";
+        $this->endSql = ")";
     }
 }
 
 class Condition implements MQB_Condition
 {
-    private $content=array();
-    private $validConditions=array("=","<>","<",">",">=","<=","like","is null","find_in_set","and","or","xor");
-    private $validSingulars=array("is null");
+    private $content = array();
+    private $validConditions = array("=", "<>", "<", ">", ">=", "<=", "like", "is null", "find_in_set", "and", "or", "xor");
+    private $validSingulars = array("is null");
 
-    public function __construct($comparison, $left, $right=null)
+    public function __construct($comparison, $left, $right = null)
     {
         $comparison = strtolower($comparison);
 
@@ -173,7 +172,7 @@ class Condition implements MQB_Condition
         if (!in_array($comparison, $this->validSingulars) and !is_object($right))
             $right = new Parameter($right);
 
-        $this->content=array($comparison,$left,$right);
+        $this->content = array($comparison, $left, $right);
     }
 
     public function getSql(array &$parameters)
@@ -185,19 +184,24 @@ class Condition implements MQB_Condition
             return $leftpart." ".$comparison;
         } else {
             $rightpart = $this->content[2]->getSql($parameters);
+
             if ($comparison == "find_in_set")
                 return $comparison."(".$rightpart.",".$leftpart.")";
+
             return $leftpart." ".$comparison." ".$rightpart;
         }
     }
+
     public function getComparison()
     {
         return $this->content[0];
     }
+
     public function getLeft()
     {
         return $this->content[1];
     }
+
     public function getRight()
     {
         return $this->content[2];
@@ -209,12 +213,13 @@ class Field implements MQB_Field
     private $name;
     private $table;
 
-    public function __construct($name, $table=0)
+    public function __construct($name, $table = 0)
     {
         if (!$name)
             throw new RangeException('Не указано имя поля/столбца');
-        $this->table=$table;
-        $this->name=$name;
+
+        $this->table = $table;
+        $this->name = $name;
     }
 
     public function getSql(array &$parameters)
@@ -319,7 +324,9 @@ class Parameter
     public function getSql(array &$parameters)
     {
         $this->number = count($parameters) + 1;
+
         $parameters[":p".$this->number] = $this->content;
+
         return ":p".$this->number;
     }
 
