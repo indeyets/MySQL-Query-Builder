@@ -2,7 +2,7 @@
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 /*
     MySQL Query Builder
-    Copyright © 2005-2006  Alexey Zakhlestine <indeyets@gmail.com>
+    Copyright © 2005-2007  Alexey Zakhlestin <indeyets@gmail.com>
     Copyright © 2005-2006  Konstantin Sedov <kostya.online@gmail.com>
 
     This library is free software; you can redistribute it and/or
@@ -78,7 +78,7 @@ class BasicQuery
         $this->reset();
     }
 
-    public function setOrderby(array $orderlist, array $orderdirectionlist)
+    public function setOrderby(array $orderlist, array $orderdirectionlist = null)
     {
         foreach ($orderlist as $field)
             if (!($field instanceof Field))
