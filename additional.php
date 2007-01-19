@@ -72,6 +72,12 @@ class Operator implements MQB_Condition
 
     protected function __construct(array $content)
     {
+        foreach ($content as $c) {
+            if (!is_object($c) or !($c instanceof MQB_Condition)) {
+                throw new InvalidArgumentException("Operators should be given valid Operators or Conditions as parameters");
+            }
+        }
+
         $this->content = $content;
     }
 
@@ -80,10 +86,6 @@ class Operator implements MQB_Condition
         $sqlparts = array();
 
         foreach ($this->content as $c) {
-            if (!is_object($c) or !($c instanceof MQB_Condition)) {
-                throw new InvalidArgumentException("Operators should be given valid Operators or Conditions as parameters");
-            }
-
             $sqlparts[] = $c->getSql($parameters);
         }
 
