@@ -43,6 +43,7 @@ function mqb_autoload($class_name)
             'OrOp' => 'additional.php',
             'XorOp' => 'additional.php',
             'Condition' => 'additional.php',
+            'AllFields' => 'additional.php',
             'Field' => 'additional.php',
             'sqlFunction' => 'additional.php',
             'Aggregate' => 'additional.php',

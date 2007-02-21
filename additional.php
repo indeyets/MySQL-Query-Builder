@@ -256,6 +256,26 @@ class Field implements MQB_Field
     }
 }
 
+class AllFields
+{
+    private $table;
+
+    public function __construct($table = 0)
+    {
+        $this->table = $table;
+    }
+
+    public function getSql(array &$parameters)
+    {
+        return '`t'.$this->table."`.*";
+    }
+
+    public function getTable()
+    {
+        return $this->table;
+    }
+}
+
 class sqlFunction implements MQB_Field
 {
     private $field;

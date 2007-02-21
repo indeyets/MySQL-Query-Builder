@@ -62,4 +62,12 @@ class SelectQueryTest extends PHPUnit_Framework_TestCase
 
         $this->assertEquals('SELECT `t0`.* FROM `test` AS `t0` WHERE `t0`.`id` IN (1, 3, 5)', $q->sql());
     }
+
+    public function testSelectSpecificFields()
+    {
+        $q = new SelectQuery(array('test', 'test2'));
+        $q->setSelect(array(new AllFields(), new Field('id', 1)));
+
+        $this->assertEquals('SELECT `t0`.*, `t1`.`id` FROM `test` AS `t0`, `test2` AS `t1`', $q->sql());
+    }
 }

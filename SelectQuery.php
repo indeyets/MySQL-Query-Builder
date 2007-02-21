@@ -29,6 +29,7 @@ class SelectQuery extends BasicQuery
     public function __construct(array $tables)
     {
         parent::__construct($tables);
+        $this->setSelect(array(new AllFields()));
     }
 
     public function setSelect(array $_selects, $distinct = false)
@@ -42,8 +43,8 @@ class SelectQuery extends BasicQuery
         }
 
         foreach ($_selects as $s) {
-            if (!($s instanceof MQB_Field))
-                throw new RangeException('Допустимые значения - объекты классов Field, sqlFunction и Aggregate');
+            if (!($s instanceof MQB_Field) and !($s instanceof AllFields))
+                throw new RangeException('Допустимые значения - объекты классов Field, AllFields, sqlFunction и Aggregate');
         }
 
         $this->selects = $_selects;
@@ -83,10 +84,6 @@ class SelectQuery extends BasicQuery
 
         if (true === $this->distinct) {
             $res .= 'DISTINCT ';
-        }
-
-        if (null === $this->selects) {
-            return $res.'`t0`.*';
         }
 
         $sqls = array();
