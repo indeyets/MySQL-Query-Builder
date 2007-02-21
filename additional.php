@@ -230,19 +230,31 @@ class Field implements MQB_Field
 {
     private $name;
     private $table;
+    private $alias;
 
-    public function __construct($name, $table = 0)
+    public function __construct($name, $table = 0, $alias = null)
     {
         if (!$name)
             throw new RangeException('Не указано имя поля/столбца');
 
         $this->table = $table;
         $this->name = $name;
+        $this->alias = $alias;
     }
 
-    public function getSql(array &$parameters)
+    public function getSql(array &$parameters, $full = false)
     {
-        return '`t'.$this->table."`.`".$this->name.'`';
+        if (true === $full or null === $this->alias) {
+            $res = '`t'.$this->table."`.`".$this->name.'`';
+
+            if (null !== $this->alias) {
+                $res .= ' AS `'.$this->alias.'`';
+            }
+        } else {
+            $res = '`'.$this->alias.'`';
+        }
+
+        return $res;
     }
 
     public function getTable()

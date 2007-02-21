@@ -88,7 +88,7 @@ class SelectQuery extends BasicQuery
 
         $sqls = array();
         foreach ($this->selects as $s) {
-            $sqls[] = $s->getSql($parameters);
+            $sqls[] = $s->getSql($parameters, true);
         }
 
         return $res.implode(", ", $sqls);
