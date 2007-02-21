@@ -158,7 +158,7 @@ class XorOp extends Operator
 class Condition implements MQB_Condition
 {
     private $content = array();
-    private $validConditions = array("=", "<>", "<", ">", ">=", "<=", "like", "is null", "find_in_set", "and", "or", "xor");
+    private $validConditions = array("=", "<>", "<", ">", ">=", "<=", "like", "is null", "find_in_set", "and", "or", "xor", "in");
     private $validSingulars = array("is null");
 
     public function __construct($comparison, $left, $right = null)
@@ -171,8 +171,20 @@ class Condition implements MQB_Condition
         if (!is_object($left))
             throw new InvalidArgumentException('Первый параметр для сравнения может быть только объектом');
 
-        if (!in_array($comparison, $this->validSingulars) and !is_object($right))
+        if (!in_array($comparison, $this->validSingulars) and is_scalar($right))
             $right = new Parameter($right);
+
+        if ($comparison == 'in') {
+            if (!is_array($right)) {
+                throw new InvalidArgumentException('Right-op has to be ARRAY, if comparison is "in"');
+            }
+
+            foreach ($right as $value) {
+                if (!is_numeric($value)) {
+                    throw new InvalidArgumentException('Right-op has to be array consisting of NUMERIC VALUES, if comparison is "in"');
+                }
+            }
+        }
 
         $this->content = array($comparison, $left, $right);
     }
@@ -184,6 +196,10 @@ class Condition implements MQB_Condition
 
         if ($comparison == 'is null'/*in_array($comparison, $this->validSingulars)*/) {
             return $leftpart." ".$comparison;
+        } elseif ($comparison == 'in') {
+            $rightpart = $this->content[2];
+
+            return $leftpart." IN (".implode(', ', $rightpart).")";
         } else {
             $rightpart = $this->content[2]->getSql($parameters);
 

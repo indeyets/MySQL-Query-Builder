@@ -54,4 +54,12 @@ class SelectQueryTest extends PHPUnit_Framework_TestCase
         } catch (InvalidArgumentException $e) {
         }
     }
+
+    public function testInCondition()
+    {
+        $q = new SelectQuery(array('test'));
+        $q->setWhere(new Condition('in', new Field('id'), array(1, 3, 5)));
+
+        $this->assertEquals('SELECT `t0`.* FROM `test` AS `t0` WHERE `t0`.`id` IN (1, 3, 5)', $q->sql());
+    }
 }
