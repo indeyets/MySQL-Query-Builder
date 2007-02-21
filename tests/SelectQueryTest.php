@@ -75,10 +75,10 @@ class SelectQueryTest extends PHPUnit_Framework_TestCase
     {
         $field1 = new Field('id', 0, 'test');
 
-        $q = new SelectQuery(array('test'));
-        $q->setSelect(array($field1));
+        $q = new SelectQuery(array('test', 'test2'));
+        $q->setSelect(array($field1, new AllFields(1)));
         $q->setWhere(new Condition('=', $field1, '2'));
 
-        $this->assertEquals('SELECT `t0`.`id` AS `test` FROM `test` AS `t0` WHERE `test` = :p1', $q->sql());
+        $this->assertEquals('SELECT `t0`.`id` AS `test`, `t1`.* FROM `test` AS `t0`, `test2` AS `t1` WHERE `test` = :p1', $q->sql());
     }
 }
