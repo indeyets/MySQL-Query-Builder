@@ -22,7 +22,7 @@
 
 class BasicQuery
 {
-    private $limit;
+    private $limit = null;
     private $conditions = null;
     private $parameters;
     private $sql = null;
@@ -32,12 +32,9 @@ class BasicQuery
 
     protected $from = array();
 
-
-
     protected function __construct(array $tables)
     {
         $this->setTables($tables);
-        $this->limit = array(new Parameter(0), new Parameter(0));
     }
 
     public function setTables(array $tables)
@@ -96,10 +93,11 @@ class BasicQuery
 
     public function setLimit($limit, $offset=0)
     {
-        $this->limit = array(new Parameter(intval($limit)), new Parameter(intval($offset)));
-        $this->reset();
-    }
+        if (!is_numeric($limit) or !is_numeric($offset))
+            throw new InvalidArgumentException('параметрами должны быть числа');
 
+        $this->limit = array($limit, $offset);
+    }
 
     //
     public function showTables()
@@ -166,10 +164,10 @@ class BasicQuery
 
     protected function getLimit(&$parameters)
     {
-        if ($this->limit[0]->getParameters() <= 0)
+        if (null === $this->limit)
             return "";
 
-        return " LIMIT ".$this->limit[0]->getSql($parameters).' OFFSET '.$this->limit[1]->getSql($parameters);
+        return " LIMIT ".$this->limit[0].' OFFSET '.$this->limit[1];
     }
 
     protected function reset()
