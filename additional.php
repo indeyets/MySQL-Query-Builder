@@ -195,9 +195,9 @@ class Condition implements MQB_Condition
         $leftpart = $this->content[1]->getSql($parameters);
 
         if ($comparison == 'is null' or ($comparison == '=' and null === $this->content[2])) {
-            return $leftpart." is null";
+            return $leftpart." IS NULL";
         } elseif ($comparison == '<>' and null === $this->content[2]) {
-            return $leftpart." not is null";
+            return $leftpart." IS NOT NULL";
         } elseif ($comparison == 'in') {
             $rightpart = $this->content[2];
 

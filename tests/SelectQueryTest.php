@@ -19,12 +19,10 @@ class SelectQueryTest extends PHPUnit_Framework_TestCase
         $q->setWhere(new Condition('=', new Field('somefield'), 35));
         $q->setLimit(10, 2);
 
-        $this->assertEquals('SELECT `t0`.* FROM `test` AS `t0` WHERE `t0`.`somefield` = :p1 LIMIT :p2 OFFSET :p3', $q->sql());
+        $this->assertEquals('SELECT `t0`.* FROM `test` AS `t0` WHERE `t0`.`somefield` = :p1 LIMIT 10 OFFSET 2', $q->sql());
 
         $params = $q->parameters();
         $this->assertEquals(35, $params[':p1']);
-        $this->assertEquals(10, $params[':p2']);
-        $this->assertEquals(2, $params[':p3']);
     }
 
     public function testNestedConditions()
@@ -80,5 +78,16 @@ class SelectQueryTest extends PHPUnit_Framework_TestCase
         $q->setWhere(new Condition('=', $field1, '2'));
 
         $this->assertEquals('SELECT `t0`.`id` AS `test`, `t1`.* FROM `test` AS `t0`, `test2` AS `t1` WHERE `test` = :p1', $q->sql());
+    }
+
+    public function testWhereNull()
+    {
+        $q = new SelectQuery(array('test'));
+        $q->setWhere(new AndOp(array(
+            new Condition('=', new Field('a'), null),
+            new Condition('<>', new Field('b'), null),
+        )));
+
+        $this->assertEquals('SELECT `t0`.* FROM `test` AS `t0` WHERE (`t0`.`a` IS NULL AND `t0`.`b` IS NOT NULL)', $q->sql());
     }
 }
