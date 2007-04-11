@@ -24,6 +24,7 @@ class UpdateQuery extends BasicQuery
 {
     private $set_fields = null;
     private $set_values = null;
+    private $up_limit = null;
 
     public function __construct(array $tables)
     {
@@ -39,7 +40,7 @@ class UpdateQuery extends BasicQuery
             $this->getSet($parameters).
             $this->getWhere($parameters).
             $this->getOrderby($parameters).
-            $this->getLimit($parameters);
+            $this->getLimit();
     }
 
     private function getUpdate(&$parameters)
@@ -92,5 +93,31 @@ class UpdateQuery extends BasicQuery
         }
 
         return " SET ".implode(", ", $sqls);
+    }
+
+    public function setLimit($limit)
+    {
+        if (count($this->from) != 1) {
+            throw new LogicException("setLimit is allowed only in single-table update queries");
+        }
+
+        if (!is_numeric($limit) or $limit < 1)
+            throw new InvalidArgumentException('параметром должно быть положительной число');
+
+        $this->up_limit = (string)$limit;
+    }
+
+    public function getLimit()
+    {
+        return (null == $this->up_limit) ? '' : ' LIMIT '.$this->up_limit;
+    }
+
+    public function setOrderby(array $orderlist, array $orderdirectionlist = null)
+    {
+        if (count($this->from) != 1) {
+            throw new LogicException("setOrderby is allowed only in single-table update queries");
+        }
+
+        parent::setOrderby($orderlist, $orderdirectionlist);
     }
 }

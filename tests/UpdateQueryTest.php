@@ -73,4 +73,33 @@ class UpdateQueryTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('value2', $params[':p2']);
         $this->assertEquals('2004-10-11', $params[':p3']);
     }
+
+    public function testLimit()
+    {
+        $q = new UpdateQuery(array('test'));
+        $q->setValues(array(
+            'qwe' => 'qweqwe'
+        ));
+        $q->setLimit(10);
+
+        $this->assertEquals('UPDATE `test` AS `t0` SET `t0`.`qwe` = :p1 LIMIT 10', $q->sql());
+
+        $params = $q->parameters();
+        $this->assertEquals('qweqwe', $params[':p1']);
+    }
+
+    public function testOrderBy()
+    {
+        $q = new UpdateQuery(array('test'));
+        $q->setValues(array(
+            'qwe' => 'qweqwe'
+        ));
+        $q->setLimit(10);
+        $q->setOrderBy(array(new Field('date')));
+
+        $this->assertEquals('UPDATE `test` AS `t0` SET `t0`.`qwe` = :p1 ORDER BY `t0`.`date` ASC LIMIT 10', $q->sql());
+
+        $params = $q->parameters();
+        $this->assertEquals('qweqwe', $params[':p1']);
+    }
 }
