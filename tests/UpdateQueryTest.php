@@ -56,4 +56,21 @@ class UpdateQueryTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('value1', $params[':p1']);
         $this->assertEquals('value2', $params[':p2']);
     }
+
+    public function testConditionalMultitableUpdate()
+    {
+        $q = new UpdateQuery(array('test', 'test2'));
+        $q->setValues(array(
+            array(new Field('field1'), 'value1'),
+            array(new Field('field2', 1), 'value2')
+        ));
+        $q->setWhere(new Condition('<', new Field('date', 1), '2004-10-11'));
+
+        $this->assertEquals('UPDATE `test` AS `t0`, `test2` AS `t1` SET `t0`.`field1` = :p1, `t1`.`field2` = :p2 WHERE `t1`.`date` < :p3', $q->sql());
+ 
+        $params = $q->parameters();
+        $this->assertEquals('value1', $params[':p1']);
+        $this->assertEquals('value2', $params[':p2']);
+        $this->assertEquals('2004-10-11', $params[':p3']);
+    }
 }
