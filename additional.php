@@ -20,8 +20,8 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-if (version_compare(phpversion(), "5.2.0", '<'))
-    die("\nMySQL Query Builder isn't functional for PHP versions earlier than 5.2\n");
+// if (version_compare(phpversion(), "5.2.0", '<'))
+//     die("\nMySQL Query Builder isn't functional for PHP versions earlier than 5.2\n");
 
 interface MQB_Condition
 {

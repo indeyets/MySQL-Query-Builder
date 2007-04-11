@@ -27,7 +27,7 @@ class InsertQuery extends BasicQuery
 
     public function __construct(array $tables, $on_duplicate_update = false)
     {
-        if (count($tables) > 1)
+        if (count($tables) != 1)
             throw new InvalidArgumentException('INSERT проводится только по одной таблице');
 
         parent::__construct($tables);
@@ -65,7 +65,7 @@ class InsertQuery extends BasicQuery
             $inserts[] = '`'.$key.'`';
         }
 
-        $sql = "INSERT INTO ".$this->from[0]." (".implode(", ", $inserts).")";
+        $sql = "INSERT INTO ".$this->from[0]->__toString()." (".implode(", ", $inserts).")";
 
         return $sql;
     }

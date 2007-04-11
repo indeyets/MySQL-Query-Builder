@@ -41,19 +41,16 @@ class DeleteQuery extends BasicQuery
 
     private function getDelete(&$parameters)
     {
-        $sql = "DELETE FROM t0";
-        return $sql;
+        return "DELETE FROM t0";
     }
 
     protected function getUsing(&$parameters)
     {
-        $sql = " USING ";
         $froms = array();
         for ($i = 0; $i < count($this->from); $i++) {
-            $froms[] = $this->from[$i]." as t".$i;
+            $froms[] = $this->from[$i]->__toString()." as t".$i;
         }
-        $sql .= implode(", ",$froms);
-        return $sql;
-    }
 
+        return " USING ".implode(", ", $froms);
+    }
 }

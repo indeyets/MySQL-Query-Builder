@@ -121,7 +121,7 @@ class BasicQuery
     {
         $froms = array();
         for ($i = 0; $i < count($this->from); $i++) {
-            $froms[] = $this->from[$i].' AS `t'.$i.'`';
+            $froms[] = $this->from[$i]->__toString().' AS `t'.$i.'`';
         }
 
         $sql = ' FROM '.implode(", ", $froms);

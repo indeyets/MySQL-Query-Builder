@@ -41,7 +41,7 @@ class UpdateQuery extends BasicQuery
 
     private function getUpdate(&$parameters)
     {
-        return "UPDATE ".$this->from[0]." t0";
+        return "UPDATE ".$this->from[0]->__toString()." t0";
     }
 
     public function setValues(array $sets)
