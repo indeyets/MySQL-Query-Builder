@@ -26,7 +26,7 @@ function mqb_autoload($class_name)
     static $classes = null;
 
     if (null === $prefix) {
-        $prefix = dirname(__FILE__);
+        $prefix = dirname(__FILE__).DIRECTORY_SEPARATOR;
     }
 
     if (null === $classes) {
@@ -52,7 +52,7 @@ function mqb_autoload($class_name)
     }
 
     if (isset($classes[$class_name]))
-        require $prefix.DIRECTORY_SEPARATOR.$classes[$class_name];
+        require $prefix.$classes[$class_name];
 }
 
 spl_autoload_register('mqb_autoload');

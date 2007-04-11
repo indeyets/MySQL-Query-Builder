@@ -22,7 +22,8 @@
 
 class UpdateQuery extends BasicQuery
 {
-    private $sets = null;
+    private $set_fields = null;
+    private $set_values = null;
 
     public function __construct(array $tables)
     {
@@ -31,17 +32,27 @@ class UpdateQuery extends BasicQuery
 
     protected function getSql(&$parameters)
     {
+        if (null === $this->set_fields)
+            throw new LogicException("Nothing is specified to be set. Can't produce valid MySQL query");
+
         return $this->getUpdate($parameters).
             $this->getSet($parameters).
             $this->getWhere($parameters).
-            $this->getHaving($parameters).
             $this->getOrderby($parameters).
             $this->getLimit($parameters);
     }
 
     private function getUpdate(&$parameters)
     {
-        return "UPDATE ".$this->from[0]->__toString()." t0";
+        $sql = 'UPDATE ';
+
+        for ($i = 0; $i < count($this->from); $i++) {
+            if ($i > 0)
+                $sql .= ', ';
+            $sql .= $this->from[$i]->__toString().' AS `t'.$i.'`';
+        }
+
+        return $sql;
     }
 
     public function setValues(array $sets)
@@ -49,21 +60,35 @@ class UpdateQuery extends BasicQuery
         if (count($sets) == 0)
             return;
 
-        $this->sets = array();
+        $this->set_fields = array();
+        $this->set_values = array();
+
         foreach ($sets as $set => $value) {
-            $this->sets[$set] = new Parameter($value);
+            if (is_array($value)) {
+                // nested arrays. $value[0] is Field, $value[1] is Parameter
+                if (is_string($value[0]))
+                    $value[0] = new Field($value[0]);
+
+                $this->set_fields[] = $value[0];
+                $this->set_values[] = new Parameter($value[1]);
+            } else {
+                // key-value pairs
+                $this->set_fields[] = new Field($set);
+                $this->set_values[] = new Parameter($value);
+            }
         }
+
         $this->reset();
     }
 
     protected function getSet(&$parameters)
     {
-        if (null === $this->sets)
+        if (null === $this->set_fields)
             return "";
 
         $sqls = array();
-        foreach ($this->sets as $set => $value) {
-           $sqls[] = '`'.$set.'`='.$value->getSql($parameters);
+        foreach ($this->set_fields as $i => $value) {
+           $sqls[] = $value->getSql($parameters).' = '.$this->set_values[$i]->getSql($parameters);
         }
 
         return " SET ".implode(", ", $sqls);
