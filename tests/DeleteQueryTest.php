@@ -1,6 +1,6 @@
 <?php
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
-require "..".DIRECTORY_SEPARATOR."autoload.php";
+require_once "..".DIRECTORY_SEPARATOR."autoload.php";
 require_once 'PHPUnit/Framework.php';
  
 class DeleteQueryTest extends PHPUnit_Framework_TestCase

@@ -25,14 +25,26 @@ class InsertQuery extends BasicQuery
     private $values;
     private $on_duplicate_update = false;
 
-    public function __construct(array $tables, $on_duplicate_update = false)
+    public function __construct($tables, $on_duplicate_update = false)
     {
+        if (is_string($tables))
+            $tables = array($tables);
+
+        if (!is_array($tables))
+            throw new InvalidArgumentException('The first parameter should be string (or an array containing one string)');
+
         if (count($tables) != 1)
             throw new InvalidArgumentException('INSERT проводится только по одной таблице');
 
         parent::__construct($tables);
 
         $this->on_duplicate_update = $on_duplicate_update;
+    }
+
+    private function __set($key, $value)
+    {
+        $this->values[$key] = new Parameter($value);
+        $this->reset();
     }
 
     protected function getSql(&$parameters)

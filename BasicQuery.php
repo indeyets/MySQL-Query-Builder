@@ -172,7 +172,7 @@ class BasicQuery
 
     protected function reset()
     {
-        $this->paramaters = array();
+        $this->parameters = array();
         $this->sql = null;
     }
 
