@@ -25,7 +25,7 @@ class DeleteQuery extends BasicQuery
     private $del_limit = null;
     private $del_tables = null;
 
-    public function __construct(array $tables, array $del_tables = array(0))
+    public function __construct($tables, array $del_tables = array(0))
     {
         parent::__construct($tables);
         $this->del_tables = $del_tables;

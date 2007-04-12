@@ -32,13 +32,19 @@ class BasicQuery
 
     protected $from = array();
 
-    protected function __construct(array $tables)
+    protected function __construct($tables)
     {
         $this->setTables($tables);
     }
 
-    public function setTables(array $tables)
+    public function setTables($tables)
     {
+        if (is_string($tables) or $tables instanceof QBTable)
+            $tables = array($tables);
+
+        if (!is_array($tables))
+            throw new InvalidArgumentException('table(s) should be specified as a string, or array of strings');
+
         if (count($tables) == 0)
             throw new InvalidArgumentException('Не указано ни одной таблицы');
 

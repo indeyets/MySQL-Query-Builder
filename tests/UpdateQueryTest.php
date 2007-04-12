@@ -76,7 +76,7 @@ class UpdateQueryTest extends PHPUnit_Framework_TestCase
 
     public function testLimit()
     {
-        $q = new UpdateQuery(array('test'));
+        $q = new UpdateQuery('test');
         $q->setValues(array(
             'qwe' => 'qweqwe'
         ));

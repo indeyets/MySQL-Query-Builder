@@ -26,7 +26,7 @@ class SelectQuery extends BasicQuery
 
     private $distinct = false;
 
-    public function __construct(array $tables)
+    public function __construct($tables)
     {
         parent::__construct($tables);
         $this->setSelect(array(new AllFields()));

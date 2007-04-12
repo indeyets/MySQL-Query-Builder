@@ -26,7 +26,7 @@ class UpdateQuery extends BasicQuery
     private $set_values = null;
     private $up_limit = null;
 
-    public function __construct(array $tables)
+    public function __construct($tables)
     {
         parent::__construct($tables);
     }
