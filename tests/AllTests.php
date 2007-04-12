@@ -1,7 +1,6 @@
-#!/usr/bin/env php
 <?php
 if (!defined('PHPUnit_MAIN_METHOD')) {
-    define('PHPUnit_MAIN_METHOD', 'MQB_AllTests::main');
+    define('PHPUnit_MAIN_METHOD', 'AllTests::main');
 }
 
 require_once 'PHPUnit/Framework.php';
@@ -11,8 +10,9 @@ require 'SelectQueryTest.php';
 require 'UpdateQueryTest.php';
 require 'DeleteQueryTest.php';
 require 'InsertQueryTest.php';
+require 'OtherTest.php';
 
-class MQB_AllTests
+class AllTests
 {
     public static function main()
     {
@@ -27,11 +27,12 @@ class MQB_AllTests
         $suite->addTestSuite('UpdateQueryTest');
         $suite->addTestSuite('DeleteQueryTest');
         $suite->addTestSuite('InsertQueryTest');
+        $suite->addTestSuite('OtherTest');
 
         return $suite;
     }
 }
 
-if (PHPUnit_MAIN_METHOD == 'MQB_AllTests::main') {
-    MQB_AllTests::main();
+if (PHPUnit_MAIN_METHOD == 'AllTests::main') {
+    AllTests::main();
 }

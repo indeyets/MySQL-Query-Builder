@@ -122,7 +122,7 @@ class UpdateQuery extends BasicQuery
         return (null == $this->up_limit) ? '' : ' LIMIT '.$this->up_limit;
     }
 
-    public function setOrderby(array $orderlist, array $orderdirectionlist = null)
+    public function setOrderby(array $orderlist, array $orderdirectionlist = array())
     {
         if (count($this->from) != 1) {
             throw new LogicException("setOrderby is allowed only in single-table update queries");

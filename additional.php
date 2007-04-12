@@ -290,45 +290,50 @@ class AllFields
     }
 }
 
-class sqlFunction implements MQB_Field
+class SqlFunction implements MQB_Field
 {
-    private $field;
     private $name;
     private $values;
+
     private $validNames = array('substring', 'year', 'month', 'day', 'date');
 
-    public function __construct($name, Field $field, array $values = null)
+    public function __construct($name, $values)
     {
         if (!is_string($name) or !in_array($name, $this->validNames))
-            throw new RangeException('Недопустимое имя функции');
+            throw new InvalidArgumentException('Недопустимое имя функции');
 
-        $this->field = $field;
+        if (!is_array($values))
+            $values = array($values);
+
+        foreach ($values as $v) {
+            if (is_object($v) and !($v instanceof MQB_Field))
+                throw new InvalidArgumentException("Something wrong passed as a parameter");
+        }
+
         $this->name = $name;
         $this->values = $values;
     }
 
     public function getSql(array &$parameters)
     {
-        $result = $this->name."(".$this->field->getSql($parameters);
+        $result = strtoupper($this->name)."(";
 
-        if (null !== $this->values) {
-            foreach ($this->values as $v) {
-                if (is_object($v)) {
-                    if (method_exists($v,'getSql')) {
-                        $result .= ",".$v->getSql($parameters);
-                    }
-                } else {
-                    $result .= ",".$v;
-                }
+        $first = true;
+        foreach ($this->values as $v) {
+            if ($first) {
+                $first = false;
+            } else {
+                $result .= ', ';
+            }
+
+            if (is_object($v)) {
+                $result .= $v->getSql($parameters);
+            } else {
+                $result .= $v;
             }
         }
 
         return $result.")";
-    }
-
-    public function getField()
-    {
-        return $this->field;
     }
 
     public function getName()
@@ -360,7 +365,7 @@ class Aggregate implements MQB_Field
     {
         $field_sql = (null === $this->field ? '*' : $this->field->getSql($parameters));
 
-        return $this->aggregate."(".$field_sql.')';
+        return strtoupper($this->aggregate)."(".$field_sql.')';
     }
 }
 
@@ -375,11 +380,11 @@ class Parameter
 
     public function getSql(array &$parameters)
     {
-        $this->number = count($parameters) + 1;
+        $number = count($parameters) + 1;
 
-        $parameters[":p".$this->number] = $this->content;
+        $parameters[":p".$number] = $this->content;
 
-        return ":p".$this->number;
+        return ":p".$number;
     }
 
     public function getParameters()
@@ -387,8 +392,8 @@ class Parameter
         return $this->content;
     }
 
-    public function getNumber()
-    {
-        return $this->number;
-    }
+    // public function getNumber()
+    // {
+    //     return $this->number;
+    // }
 }

@@ -11,6 +11,19 @@ class SelectQueryTest extends PHPUnit_Framework_TestCase
 
         $this->assertEquals('SELECT `t0`.* FROM `test` AS `t0`', $q->sql());
         $this->assertEquals(0, count($q->parameters()));
+
+
+        $q = new SelectQuery(array('test'));
+        $q->setSelect(array(new AllFields()), true);
+
+        $this->assertEquals('SELECT DISTINCT `t0`.* FROM `test` AS `t0`', $q->sql());
+        $this->assertEquals(0, count($q->parameters()));
+
+
+        $q = new SelectQuery(array(new QBTable('test')));
+
+        $this->assertEquals('SELECT `t0`.* FROM `test` AS `t0`', $q->sql());
+        $this->assertEquals(0, count($q->parameters()));
     }
 
     public function testSelectSomeFromOneTable()
@@ -89,5 +102,87 @@ class SelectQueryTest extends PHPUnit_Framework_TestCase
         )));
 
         $this->assertEquals('SELECT `t0`.* FROM `test` AS `t0` WHERE (`t0`.`a` IS NULL AND `t0`.`b` IS NOT NULL)', $q->sql());
+
+        $q->setWhere();
+        $this->assertEquals('SELECT `t0`.* FROM `test` AS `t0`', $q->sql());
+    }
+
+    public function testSelectWrongs()
+    {
+        try {
+            $q = new SelectQuery('test');
+            $q->setSelect(array());
+            $this->fail("noone is allowed to select nothing!");
+        } catch (InvalidArgumentException $e) {
+        }
+
+        try {
+            $q = new SelectQuery('test');
+            $q->setSelect(array('field1'), 'test');
+            $this->fail("second params should be boolean!");
+        } catch (InvalidArgumentException $e) {
+        }
+
+        try {
+            $q = new SelectQuery(array(123));
+            $this->fail("tables param should be either string or QBTable!");
+        } catch (LogicException $e) {
+        }
+
+        try {
+            $q = new SelectQuery('test');
+            $q->setWhere(array());
+            $this->fail("condition should be valid");
+        } catch (InvalidArgumentException $e) {
+        }
+
+        try {
+            $q = new SelectQuery('test');
+            $q->setHaving('boom');
+            $this->fail("condition should be valid");
+        } catch (InvalidArgumentException $e) {
+        }
+    }
+
+    public function testGroupBy()
+    {
+        $q = new SelectQuery(array('test'));
+        $q->setGroupby(array(new Field('year')));
+
+        $this->assertEquals('SELECT `t0`.* FROM `test` AS `t0` GROUP BY `t0`.`year`', $q->sql());
+
+        $q->setHaving(new Condition('>', new Aggregate('count', new Field('commit')), 20));
+        $this->assertEquals('SELECT `t0`.* FROM `test` AS `t0` GROUP BY `t0`.`year` HAVING COUNT(`t0`.`commit`) > :p1', $q->sql());
+
+        $q->setHaving();
+        $this->assertEquals('SELECT `t0`.* FROM `test` AS `t0` GROUP BY `t0`.`year`', $q->sql());
+    }
+
+    public function testOrderBy()
+    {
+        $q = new SelectQuery('test');
+        $q->setOrderBy(array(new Field('id')), array(true));
+
+        $this->assertEquals('SELECT `t0`.* FROM `test` AS `t0` ORDER BY `t0`.`id` DESC', $q->sql());
+    }
+
+    public function testInfo()
+    {
+        $tbls = array('test1', 'test2', 'test3');
+        $q = new SelectQuery($tbls);
+
+        $this->assertEquals(var_export($tbls, true), var_export($q->showTables(), true));
+
+        $condition = new Condition('=', new Field('id'), 1);
+        $q->setWhere($condition);
+
+        $this->assertEquals(var_export($condition, true), var_export($q->showConditions(), true));
+    }
+
+    public function testMultiSchema()
+    {
+        $q = new SelectQuery(new QBTable('test', 'db2'));
+
+        $this->assertEquals('SELECT `t0`.* FROM `db2`.`test` AS `t0`', $q->sql());
     }
 }

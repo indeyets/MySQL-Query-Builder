@@ -23,6 +23,7 @@ class SelectQuery extends BasicQuery
 {
     private $selects = null;
     private $groupby = null;
+    private $havings = null;
 
     private $distinct = false;
 
@@ -62,11 +63,6 @@ class SelectQuery extends BasicQuery
         $this->reset();
     }
 
-    public function showGroupby()
-    {
-        return $this->groupby;
-    }
-
     protected function getSql(&$parameters)
     {
         return $this->getSelect($parameters).
@@ -104,5 +100,26 @@ class SelectQuery extends BasicQuery
         }
 
         return " GROUP BY ".implode(", ", $sqls);
+    }
+
+    public function setHaving($conditions = null)
+    {
+        if (null === $conditions) {
+            $this->havings = null;
+        } elseif ($conditions instanceof MQB_Condition) {
+            $this->havings = clone $conditions;
+        } else {
+            throw new InvalidArgumentException('setHaving accepts either NULL or MQB_Condition as a parameter');
+        }
+
+        $this->reset();
+    }
+
+    protected function getHaving(&$parameters)
+    {
+        if (null == $this->havings)
+            return "";
+
+        return " HAVING ".$this->havings->getSql($parameters);
     }
 }

@@ -111,4 +111,21 @@ class UpdateQueryTest extends PHPUnit_Framework_TestCase
         $params = $q->parameters();
         $this->assertEquals('qweqwe', $params[':p1']);
     }
+
+    public function testOrderLimitOnMultiple()
+    {
+        try {
+            $q = new UpdateQuery(array('test', 'test2', 'test3'));
+            $q->setLimit(10);
+            $this->assertEquals(true, false);
+        } catch (LogicException $e) {
+        }
+
+        try {
+            $q = new UpdateQuery(array('test', 'test2', 'test3'));
+            $q->setOrderBy(array(new Field('field1')));
+            $this->assertEquals(true, false);
+        } catch (LogicException $e) {
+        }
+    }
 }

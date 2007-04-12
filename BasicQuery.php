@@ -28,7 +28,6 @@ class BasicQuery
     private $sql = null;
     private $orderby;
     private $orderdirection;
-    private $havings;
 
     protected $from = array();
 
@@ -75,24 +74,14 @@ class BasicQuery
         $this->reset();
     }
 
-    public function setHaving($conditions)
-    {
-        $this->havings = $conditions;
-        $this->reset();
-    }
-
-    public function setOrderby(array $orderlist, array $orderdirectionlist = null)
+    public function setOrderby(array $orderlist, array $orderdirectionlist = array())
     {
         foreach ($orderlist as $field)
             if (!($field instanceof Field))
                 throw new InvalidArgumentException('Допускается только массив объектов типа Field');
 
         $this->orderby = $orderlist;
-
-        if (null === $orderdirectionlist)
-            $this->orderdirection = array();
-        else 
-            $this->orderdirection = $orderdirectionlist;
+        $this->orderdirection = $orderdirectionlist;
 
         $this->reset();
     }
@@ -141,14 +130,6 @@ class BasicQuery
             return "";
 
         return " WHERE ".$this->conditions->getSql($parameters);
-    }
-
-    protected function getHaving(&$parameters)
-    {
-        if (!$this->havings)
-            return "";
-
-        return " HAVING ".$this->havings->getSql($parameters);
     }
 
     protected function getOrderby(&$parameters)
