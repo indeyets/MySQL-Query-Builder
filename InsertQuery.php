@@ -89,6 +89,9 @@ class InsertQuery extends BasicQuery
 
     private function getUpdate(&$parameters)
     {
+        if (!isset($this->values['id']))
+            throw new LogicException("id field is required for ON DUPLICATE KEY UPDATE functionality");
+
         $values = array();
         foreach ($this->values as $k => $v) {
             if ('id' == $k) // skipping (FIXMIE: не всегда первичным ключом является id)
