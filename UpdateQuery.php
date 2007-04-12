@@ -29,6 +29,16 @@ class UpdateQuery extends BasicQuery
     public function __construct($tables)
     {
         parent::__construct($tables);
+
+        $this->set_fields = array();
+        $this->set_values = array();
+    }
+
+    private function __set($key, $value)
+    {
+        $this->set_fields[] = new Field($key);
+        $this->set_values[] = new Parameter($value);
+        $this->reset();
     }
 
     protected function getSql(&$parameters)

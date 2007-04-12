@@ -25,6 +25,15 @@ class UpdateQueryTest extends PHPUnit_Framework_TestCase
 
         $params = $q->parameters();
         $this->assertEquals('qweqwe', $params[':p1']);
+
+        // shortcut
+        $q = new UpdateQuery('test');
+        $q->qwe = 'qweqwe';
+
+        $this->assertEquals('UPDATE `test` AS `t0` SET `t0`.`qwe` = :p1', $q->sql());
+
+        $params = $q->parameters();
+        $this->assertEquals('qweqwe', $params[':p1']);
     }
 
     public function testConditionalUpdate()
