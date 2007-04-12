@@ -22,6 +22,8 @@
 
 class DeleteQuery extends BasicQuery
 {
+    private $del_limit = null;
+
     public function __construct(array $tables)
     {
         parent::__construct($tables);
@@ -32,7 +34,6 @@ class DeleteQuery extends BasicQuery
         $sql  = $this->getDelete($parameters);
         $sql .= $this->getUsing($parameters);
         $sql .= $this->getWhere($parameters);
-        $sql .= $this->getHaving($parameters);
         $sql .= $this->getOrderby($parameters);
         $sql .= $this->getLimit($parameters);
 
@@ -41,16 +42,48 @@ class DeleteQuery extends BasicQuery
 
     private function getDelete(&$parameters)
     {
-        return "DELETE FROM t0";
+        if (count($this->from) == 1)
+            return 'DELETE FROM '.$this->from[0]->__toString().' AS `t0`';
+        else
+            return 'DELETE FROM `t0`';
     }
 
     protected function getUsing(&$parameters)
     {
+        if (count($this->from) == 1)
+            return '';
+
         $froms = array();
         for ($i = 0; $i < count($this->from); $i++) {
-            $froms[] = $this->from[$i]->__toString()." as t".$i;
+            $froms[] = $this->from[$i]->__toString().' AS `t'.$i.'`';
         }
 
         return " USING ".implode(", ", $froms);
+    }
+
+    public function setLimit($limit)
+    {
+        if (count($this->from) != 1) {
+            throw new LogicException("setLimit is allowed only in single-table delete queries");
+        }
+
+        if (!is_numeric($limit) or $limit < 1)
+            throw new InvalidArgumentException('positive number should be used as a limit');
+
+        $this->del_limit = (string)$limit;
+    }
+
+    public function getLimit()
+    {
+        return (null == $this->del_limit) ? '' : ' LIMIT '.$this->del_limit;
+    }
+
+    public function setOrderby(array $orderlist, array $orderdirectionlist = null)
+    {
+        if (count($this->from) != 1) {
+            throw new LogicException("setOrderby is allowed only in single-table delete queries");
+        }
+
+        parent::setOrderby($orderlist, $orderdirectionlist);
     }
 }
