@@ -23,10 +23,12 @@
 class DeleteQuery extends BasicQuery
 {
     private $del_limit = null;
+    private $del_tables = null;
 
-    public function __construct(array $tables)
+    public function __construct(array $tables, array $del_tables = array(0))
     {
         parent::__construct($tables);
+        $this->del_tables = $del_tables;
     }
 
     protected function getSql(&$parameters)
@@ -44,8 +46,22 @@ class DeleteQuery extends BasicQuery
     {
         if (count($this->from) == 1)
             return 'DELETE FROM '.$this->from[0]->__toString().' AS `t0`';
-        else
-            return 'DELETE FROM `t0`';
+        else {
+            $sql = 'DELETE FROM';
+
+            $first = true;
+            foreach ($this->del_tables as $tbl) {
+                if ($first) {
+                    $first = false;
+                } else {
+                    $sql .= ',';
+                }
+
+                $sql .= ' `t'.$tbl.'`';
+            }
+
+            return $sql;
+        }
     }
 
     protected function getUsing(&$parameters)

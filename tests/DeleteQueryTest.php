@@ -19,6 +19,24 @@ class DeleteQueryTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('DELETE FROM `t0` USING `test` AS `t0`, `test2` AS `t1`, `test3` AS `t2`', $q->sql());
     }
 
+    public function testSeveralOfMultiple()
+    {
+        $q = new DeleteQuery(array('test', 'test2', 'test3'), array(0, 2));
+
+        $this->assertEquals('DELETE FROM `t0`, `t2` USING `test` AS `t0`, `test2` AS `t1`, `test3` AS `t2`', $q->sql());
+    }
+
+    public function testWhere()
+    {
+        $q = new DeleteQuery(array('test'));
+        $q->setWhere(new AndOp(array(
+            new Condition('=', new Field('group'), 'test'),
+            new Condition('=', new Field('author'), null)
+        )));
+
+        $this->assertEquals('DELETE FROM `test` AS `t0` WHERE (`t0`.`group` = :p1 AND `t0`.`author` IS NULL)', $q->sql());
+    }
+
     public function testOrderLimit()
     {
         $q = new DeleteQuery(array('test'));
