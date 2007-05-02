@@ -63,6 +63,11 @@ class SelectQuery extends BasicQuery
         $this->reset();
     }
 
+    public function showGroupBy()
+    {
+        return $this->groupby;
+    }
+
     protected function getSql(&$parameters)
     {
         return $this->getSelect($parameters).
