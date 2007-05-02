@@ -146,8 +146,10 @@ class SelectQueryTest extends PHPUnit_Framework_TestCase
 
     public function testGroupBy()
     {
+        $group_by = array(new Field('year'));
+
         $q = new SelectQuery(array('test'));
-        $q->setGroupby(array(new Field('year')));
+        $q->setGroupby($group_by);
 
         $this->assertEquals('SELECT `t0`.* FROM `test` AS `t0` GROUP BY `t0`.`year`', $q->sql());
 
@@ -156,6 +158,8 @@ class SelectQueryTest extends PHPUnit_Framework_TestCase
 
         $q->setHaving();
         $this->assertEquals('SELECT `t0`.* FROM `test` AS `t0` GROUP BY `t0`.`year`', $q->sql());
+
+        $this->assertEquals(var_export($group_by, true), var_export($q->showGroupBy(), true)); // check required by BebopCMS(tm)
     }
 
     public function testOrderBy()
