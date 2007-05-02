@@ -9,7 +9,7 @@ class DeleteQueryTest extends PHPUnit_Framework_TestCase
     {
         $q = new DeleteQuery(array('test'));
 
-        $this->assertEquals('DELETE FROM `test` AS `t0`', $q->sql());
+        $this->assertEquals('DELETE FROM `test`', $q->sql()); // aliases are NOT supported in one-table delete queries
     }
 
     public function testOneOfMultiple()
@@ -34,7 +34,7 @@ class DeleteQueryTest extends PHPUnit_Framework_TestCase
             new Condition('=', new Field('author'), null)
         )));
 
-        $this->assertEquals('DELETE FROM `test` AS `t0` WHERE (`t0`.`group` = :p1 AND `t0`.`author` IS NULL)', $q->sql());
+        $this->assertEquals('DELETE FROM `test` WHERE (`test`.`group` = :p1 AND `test`.`author` IS NULL)', $q->sql());
     }
 
     public function testOrderLimit()
@@ -43,7 +43,7 @@ class DeleteQueryTest extends PHPUnit_Framework_TestCase
         $q->setLimit(10);
         $q->setOrderBy(array(new Field('field1')));
 
-        $this->assertEquals('DELETE FROM `test` AS `t0` ORDER BY `t0`.`field1` ASC LIMIT 10', $q->sql());
+        $this->assertEquals('DELETE FROM `test` ORDER BY `test`.`field1` ASC LIMIT 10', $q->sql());
     }
 
     public function testOrderLimitOnMultiple()

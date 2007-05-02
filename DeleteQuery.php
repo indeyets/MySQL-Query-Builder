@@ -2,8 +2,8 @@
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 /*
     MySQL Query Builder
-    Copyright Â© 2005-2007  Alexey Zakhlestin <indeyets@gmail.com>
-    Copyright Â© 2005-2006  Konstantin Sedov <kostya.online@gmail.com>
+    Copyright © 2005-2007  Alexey Zakhlestin <indeyets@gmail.com>
+    Copyright © 2005-2006  Konstantin Sedov <kostya.online@gmail.com>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -39,13 +39,17 @@ class DeleteQuery extends BasicQuery
         $sql .= $this->getOrderby($parameters);
         $sql .= $this->getLimit($parameters);
 
+        if (count($this->from) == 1) {
+            $sql = str_replace('`t0`', $this->from[0]->__toString(), $sql);
+        }
+
         return $sql;
     }
 
     private function getDelete(&$parameters)
     {
         if (count($this->from) == 1)
-            return 'DELETE FROM '.$this->from[0]->__toString().' AS `t0`';
+            return 'DELETE FROM '.$this->from[0]->__toString();
         else {
             $sql = 'DELETE FROM';
 
