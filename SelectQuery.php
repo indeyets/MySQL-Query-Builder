@@ -33,8 +33,12 @@ class SelectQuery extends BasicQuery
         $this->setSelect(array(new AllFields()));
     }
 
-    public function setSelect(array $_selects, $distinct = false)
+    public function setSelect($_selects, $distinct = false)
     {
+        if (!is_array($_selects)) {
+            $_selects = array($_selects);
+        }
+
         if (count($_selects) == 0) {
             throw new InvalidArgumentException('Nothing to select');
         }
@@ -45,7 +49,7 @@ class SelectQuery extends BasicQuery
 
         foreach ($_selects as $s) {
             if (!($s instanceof MQB_Field) and !($s instanceof AllFields))
-                throw new RangeException('Допустимые значения - объекты классов Field, AllFields, sqlFunction и Aggregate');
+                throw new RangeException('Allowed values are objects of the following classes: Field, AllFields, sqlFunction и Aggregate');
         }
 
         $this->selects = $_selects;
@@ -101,7 +105,10 @@ class SelectQuery extends BasicQuery
             return "";
 
         foreach ($this->groupby as $groupby) {
-            $sqls[] = $groupby->getSql($parameters);
+            if (null !== $alias = $groupby->getAlias())
+                $sqls[] = $alias;
+            else
+                $sqls[] = $groupby->getSql($parameters);
         }
 
         return " GROUP BY ".implode(", ", $sqls);

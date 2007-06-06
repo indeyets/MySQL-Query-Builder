@@ -20,9 +20,6 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-// if (version_compare(phpversion(), "5.2.0", '<'))
-//     die("\nMySQL Query Builder isn't functional for PHP versions earlier than 5.2\n");
-
 interface MQB_Condition
 {
     public function getSql(array &$parameters);
@@ -31,6 +28,7 @@ interface MQB_Condition
 interface MQB_Field
 {
     public function getSql(array &$parameters);
+    public function getAlias();
 }
 
 class QBTable
@@ -268,6 +266,14 @@ class Field implements MQB_Field
     {
         return $this->name;
     }
+
+    public function getAlias()
+    {
+        if (null === $this->alias)
+            return null;
+
+        return '`'.$this->alias.'`';
+    }
 }
 
 class AllFields
@@ -294,10 +300,11 @@ class SqlFunction implements MQB_Field
 {
     private $name;
     private $values;
+    private $alias;
 
     private $validNames = array('substring', 'year', 'month', 'day', 'date');
 
-    public function __construct($name, $values)
+    public function __construct($name, $values, $alias = null)
     {
         if (!is_string($name) or !in_array($name, $this->validNames))
             throw new InvalidArgumentException('Недопустимое имя функции');
@@ -312,6 +319,7 @@ class SqlFunction implements MQB_Field
 
         $this->name = $name;
         $this->values = $values;
+        $this->alias = $alias;
     }
 
     public function getSql(array &$parameters)
@@ -333,7 +341,21 @@ class SqlFunction implements MQB_Field
             }
         }
 
-        return $result.")";
+        $result .= ')';
+
+        if (null !== $this->alias) {
+            $result .= ' AS '.$this->getAlias();
+        }
+
+        return $result;
+    }
+
+    public function getAlias()
+    {
+        if (null === $this->alias)
+            return null;
+
+        return '`'.$this->alias.'`';
     }
 
     public function getName()
@@ -345,27 +367,50 @@ class SqlFunction implements MQB_Field
 class Aggregate implements MQB_Field
 {
     private $aggregate;
+    private $distinct;
     private $name;
     private $table;
+    private $alias;
     private $validAggregates = array("sum", "count", "min", "max", "avg");
     private $field = null;
 
-    public function __construct($aggregate, Field $field=null)
+    public function __construct($aggregate, $field, $distinct=false, $alias=null)
     {
         if (!in_array($aggregate, $this->validAggregates))
-            throw new RangeException('Недопустимая аггрегирующая функция');
+            throw new RangeException('Invalid aggregate function: '.$aggregate);
+
+        if (!($field instanceof MQB_Field) and !($field instanceof AllFields))
+            throw new InvalidArgumentException('$field should be either MQB_Field or AllFields');
 
         $this->aggregate = $aggregate;
-
-        if (null !== $field)
-            $this->field = $field;
+        $this->distinct = ($distinct === true);
+        $this->alias = $alias;
+        $this->field = $field;
     }
 
     public function getSql(array &$parameters)
     {
-        $field_sql = (null === $this->field ? '*' : $this->field->getSql($parameters));
+        $field_sql = $this->field->getSql($parameters);
 
-        return strtoupper($this->aggregate)."(".$field_sql.')';
+        if ($this->distinct) {
+            $field_sql = 'DISTINCT '.$field_sql;
+        }
+
+        $field_sql = strtoupper($this->aggregate)."(".$field_sql.')';
+
+        if (null !== $this->alias) {
+            $field_sql .= ' AS `'.$this->alias.'`';
+        }
+
+        return $field_sql;
+    }
+
+    public function getAlias()
+    {
+        if (null === $this->alias)
+            return null;
+
+        return '`'.$this->alias.'`';
     }
 }
 
@@ -391,9 +436,4 @@ class Parameter
     {
         return $this->content;
     }
-
-    // public function getNumber()
-    // {
-    //     return $this->number;
-    // }
 }

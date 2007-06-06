@@ -77,8 +77,8 @@ class BasicQuery
     public function setOrderby(array $orderlist, array $orderdirectionlist = array())
     {
         foreach ($orderlist as $field)
-            if (!($field instanceof Field))
-                throw new InvalidArgumentException('Допускается только массив объектов типа Field');
+            if (!($field instanceof MQB_Field))
+                throw new InvalidArgumentException('Only object implementing MQB_Field can be used in setOrderBy');
 
         $this->orderby = $orderlist;
         $this->orderdirection = $orderdirectionlist;
@@ -137,13 +137,16 @@ class BasicQuery
         if (!$this->orderby || !is_array($this->orderby))
             return "";
 
-        foreach ($this->orderby as $i=>$orderby) {
+        foreach ($this->orderby as $i => $field) {
             if (array_key_exists($i, $this->orderdirection) && $this->orderdirection[$i])
                 $direction = ' DESC';
             else
                 $direction = ' ASC';
 
-            $sqls[] = $orderby->getSql($parameters).$direction;
+            if (null !== $alias = $field->getAlias())
+                $sqls[] = $alias.$direction;
+            else
+                $sqls[] = $field->getSql($parameters).$direction;
         }
 
         return " ORDER BY ".implode(", ", $sqls);

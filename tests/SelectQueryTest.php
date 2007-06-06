@@ -144,6 +144,12 @@ class SelectQueryTest extends PHPUnit_Framework_TestCase
         }
     }
 
+    public function testAggregate()
+    {
+        $q = new SelectQuery('test');
+        $q->setSelect(new Aggregate('count', new AllFields(0)));
+    }
+
     public function testGroupBy()
     {
         $group_by = array(new Field('year'));
@@ -160,6 +166,30 @@ class SelectQueryTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('SELECT `t0`.* FROM `test` AS `t0` GROUP BY `t0`.`year`', $q->sql());
 
         $this->assertEquals(var_export($group_by, true), var_export($q->showGroupBy(), true)); // check required by BebopCMS(tm)
+    }
+
+    public function testGroupByAggregate()
+    {
+        $group_by = new Aggregate('count', new Field('user'), true, 'c');
+        $field = new Field('very_long_identifier', 0, 'url');
+
+        $q = new SelectQuery('test');
+        $q->setSelect(array($group_by, $field));
+        $q->setGroupby(array($group_by));
+        $q->setOrderBy(array($field));
+
+        $this->assertEquals('SELECT COUNT(DISTINCT `t0`.`user`) AS `c`, `t0`.`very_long_identifier` AS `url` FROM `test` AS `t0` GROUP BY `c` ORDER BY `url` ASC', $q->sql());
+    }
+
+    public function testOrderByFunction()
+    {
+        $f = new SqlFunction('year', new Field('stamp'), 'year');
+
+        $q = new SelectQuery('test');
+        $q->setSelect(array($f, new Field('profit')));
+        $q->setOrderBy(array($f));
+
+        $this->assertEquals('SELECT YEAR(`t0`.`stamp`) AS `year`, `t0`.`profit` FROM `test` AS `t0` ORDER BY `year` ASC', $q->sql());
     }
 
     public function testOrderBy()
