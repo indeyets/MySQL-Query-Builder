@@ -2,8 +2,8 @@
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 /*
     MySQL Query Builder
-    Copyright © 2005-2007  Alexey Zakhlestin <indeyets@gmail.com>
-    Copyright © 2005-2006  Konstantin Sedov <kostya.online@gmail.com>
+    Copyright � 2005-2007  Alexey Zakhlestin <indeyets@gmail.com>
+    Copyright � 2005-2006  Konstantin Sedov <kostya.online@gmail.com>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -112,7 +112,7 @@ class UpdateQuery extends BasicQuery
         }
 
         if (!is_numeric($limit) or $limit < 1)
-            throw new InvalidArgumentException('параметром должно быть положительной число');
+            throw new InvalidArgumentException('setLimit takes as single numeric greater than zero');
 
         $this->up_limit = (string)$limit;
     }

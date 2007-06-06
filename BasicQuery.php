@@ -2,8 +2,8 @@
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 /*
     MySQL Query Builder
-    Copyright © 2005-2007  Alexey Zakhlestin <indeyets@gmail.com>
-    Copyright © 2005-2006  Konstantin Sedov <kostya.online@gmail.com>
+    Copyright � 2005-2007  Alexey Zakhlestin <indeyets@gmail.com>
+    Copyright � 2005-2006  Konstantin Sedov <kostya.online@gmail.com>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -45,7 +45,7 @@ class BasicQuery
             throw new InvalidArgumentException('table(s) should be specified as a string, or array of strings');
 
         if (count($tables) == 0)
-            throw new InvalidArgumentException('Не указано ни одной таблицы');
+            throw new InvalidArgumentException('there were no tables, specified');
 
         $this->from = array();
         foreach ($tables as $table) {
@@ -54,7 +54,7 @@ class BasicQuery
             } elseif ($table instanceof QBTable) {
                 $this->from[] = $table;
             } else {
-                throw new LogicException("В качестве таблицы передан неправильный тип поля");
+                throw new LogicException("Invalid object is provided as a table");
             }
         }
 
@@ -68,7 +68,7 @@ class BasicQuery
         } elseif ($conditions instanceof MQB_Condition) {
             $this->conditions = clone $conditions;
         } else {
-            throw new InvalidArgumentException('Условия where не являются допустимым объектом');
+            throw new InvalidArgumentException('Specified where-condition is not a valid object');
         }
 
         $this->reset();
@@ -89,7 +89,7 @@ class BasicQuery
     public function setLimit($limit, $offset=0)
     {
         if (!is_numeric($limit) or !is_numeric($offset))
-            throw new InvalidArgumentException('параметрами должны быть числа');
+            throw new InvalidArgumentException('Limit should be specified using numerics');
 
         $this->limit = array($limit, $offset);
     }

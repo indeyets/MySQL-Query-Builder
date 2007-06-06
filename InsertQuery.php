@@ -30,7 +30,7 @@ class InsertQuery extends BasicQuery
         parent::__construct($tables);
 
         if (count($this->from) != 1)
-            throw new InvalidArgumentException('INSERT проводится только по одной таблице');
+            throw new InvalidArgumentException('INSERT can be used only on the single table');
 
         $this->on_duplicate_update = $on_duplicate_update;
     }

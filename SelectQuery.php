@@ -57,11 +57,14 @@ class SelectQuery extends BasicQuery
         $this->reset();
     }
 
-    public function setGroupby(array $orderlist)
+    public function setGroupby($orderlist)
     {
+        if (!is_array($orderlist))
+            $orderlist = array($orderlist);
+
         foreach ($orderlist as $field)
             if (!($field instanceof MQB_Field))
-                throw new InvalidArgumentException('Допускается только массив объектов типа Field');
+                throw new InvalidArgumentException('setGroupBy takes only [array of] MQB_Fields as parameter');
 
         $this->groupby = $orderlist;
         $this->reset();

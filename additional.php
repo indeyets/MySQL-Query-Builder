@@ -164,10 +164,10 @@ class Condition implements MQB_Condition
         $comparison = strtolower($comparison);
 
         if (!in_array($comparison, $this->validConditions))
-            throw new RangeException('Недопустимая функция сравнения');
+            throw new RangeException('invalid comparator-function');
 
         if (!is_object($left))
-            throw new InvalidArgumentException('Первый параметр для сравнения может быть только объектом');
+            throw new InvalidArgumentException('First member of comparision should be an object');
 
         if (!in_array($comparison, $this->validSingulars) and is_scalar($right))
             $right = new Parameter($right);
@@ -235,7 +235,7 @@ class Field implements MQB_Field
     public function __construct($name, $table = 0, $alias = null)
     {
         if (!$name)
-            throw new RangeException('Не указано имя поля/столбца');
+            throw new RangeException('Name of the field is not specified');
 
         $this->table = $table;
         $this->name = $name;
@@ -307,7 +307,7 @@ class SqlFunction implements MQB_Field
     public function __construct($name, $values, $alias = null)
     {
         if (!is_string($name) or !in_array($name, $this->validNames))
-            throw new InvalidArgumentException('Недопустимое имя функции');
+            throw new InvalidArgumentException('Invalid sql-function: '.$name);
 
         if (!is_array($values))
             $values = array($values);
