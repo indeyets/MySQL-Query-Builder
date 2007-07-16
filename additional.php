@@ -87,7 +87,12 @@ class Operator implements MQB_Condition
             $sqlparts[] = $c->getSql($parameters);
         }
 
-        return $this->startSql.implode($this->implodeSql, $sqlparts).$this->endSql;
+        $parts = implode($this->implodeSql, $sqlparts);
+
+        if (empty($parts))
+            return '';
+
+        return $this->startSql.$parts.$this->endSql;
     }
 }
 

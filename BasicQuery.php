@@ -129,7 +129,12 @@ class BasicQuery
         if (null === $this->conditions)
             return "";
 
-        return " WHERE ".$this->conditions->getSql($parameters);
+        $sql = $this->conditions->getSql($parameters);
+
+        if (empty($sql))
+            return "";
+
+        return " WHERE ".$sql;
     }
 
     protected function getOrderby(&$parameters)
