@@ -1,5 +1,5 @@
 <?php
-/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 enc=utf8: */
 /*
     MySQL Query Builder
     Copyright © 2005-2007  Alexey Zakhlestin <indeyets@gmail.com>
