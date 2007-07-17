@@ -2,8 +2,8 @@
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 /*
     MySQL Query Builder
-    Copyright Â© 2005-2007  Alexey Zakhlestin <indeyets@gmail.com>
-    Copyright Â© 2005-2006  Konstantin Sedov <kostya.online@gmail.com>
+    Copyright © 2005-2007  Alexey Zakhlestin <indeyets@gmail.com>
+    Copyright © 2005-2006  Konstantin Sedov <kostya.online@gmail.com>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -379,29 +379,35 @@ class Aggregate implements MQB_Field
     private $validAggregates = array("sum", "count", "min", "max", "avg");
     private $field = null;
 
-    public function __construct($aggregate, $field, $distinct=false, $alias=null)
+    public function __construct($aggregate, $field = null, $distinct=false, $alias=null)
     {
         if (!in_array($aggregate, $this->validAggregates))
             throw new RangeException('Invalid aggregate function: '.$aggregate);
 
-        if (!($field instanceof MQB_Field) and !($field instanceof AllFields))
-            throw new InvalidArgumentException('$field should be either MQB_Field or AllFields');
+        if (($field instanceof MQB_Field) or (null === $field and $aggregate == 'count')) {
+            $this->aggregate = $aggregate;
+            $this->distinct = ($distinct === true);
+            $this->alias = $alias;
+            $this->field = $field;
+        } else {
+            throw new InvalidArgumentException('field should be MQB_Field');
+        }
 
-        $this->aggregate = $aggregate;
-        $this->distinct = ($distinct === true);
-        $this->alias = $alias;
-        $this->field = $field;
     }
 
     public function getSql(array &$parameters)
     {
-        $field_sql = $this->field->getSql($parameters);
+        if (null === $this->field) {
+            $field_sql = '*';
+        } else {
+            $field_sql = $this->field->getSql($parameters);
+        }
 
         if ($this->distinct) {
             $field_sql = 'DISTINCT '.$field_sql;
         }
 
-        $field_sql = strtoupper($this->aggregate)."(".$field_sql.')';
+        $field_sql = strtoupper($this->aggregate).'('.$field_sql.')';
 
         if (null !== $this->alias) {
             $field_sql .= ' AS `'.$this->alias.'`';

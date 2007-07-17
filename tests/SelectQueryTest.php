@@ -147,7 +147,16 @@ class SelectQueryTest extends PHPUnit_Framework_TestCase
     public function testAggregate()
     {
         $q = new SelectQuery('test');
-        $q->setSelect(new Aggregate('count', new AllFields(0)));
+        $q->setSelect(new Aggregate('count'));
+
+        $this->assertEquals('SELECT COUNT(*) FROM `test` AS `t0`', $q->sql());
+
+        // This should throw exception, as count accept only '*' not 't0.*'
+        try {
+            new Aggregate('count', new AllFields());
+            fail();
+        } catch (InvalidArgumentException $e) {
+        }
     }
 
     public function testGroupBy()
