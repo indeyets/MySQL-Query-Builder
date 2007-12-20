@@ -24,6 +24,7 @@ class SelectQuery extends BasicQuery
     private $selects = null;
     private $groupby = null;
     private $havings = null;
+    private $indices = null;
 
     private $distinct = false;
 
@@ -57,6 +58,15 @@ class SelectQuery extends BasicQuery
         $this->reset();
     }
 
+    public function setIndices($indices)
+    {
+        if (!is_array($indices)) {
+            $indices = array($indices);
+        }
+
+        $this->indices = $indices;
+    }
+
     public function setGroupby($orderlist)
     {
         if (!is_array($orderlist))
@@ -79,6 +89,7 @@ class SelectQuery extends BasicQuery
     {
         return $this->getSelect($parameters).
             $this->getFrom($parameters).
+            $this->getIndices().
             $this->getWhere($parameters).
             $this->getGroupby($parameters).
             $this->getHaving($parameters).
@@ -136,5 +147,25 @@ class SelectQuery extends BasicQuery
             return "";
 
         return " HAVING ".$this->havings->getSql($parameters);
+    }
+
+    protected function getIndices()
+    {
+        if (null === $this->indices)
+            return '';
+
+        $res = ' USE INDEX (';
+        $first = true;
+        foreach ($this->indices as $idx) {
+            if (true === $first)
+                $first = false;
+            else
+                $res .= ', ';
+
+            $res .= '`'.$idx.'`';
+        }
+        $res .= ')';
+
+        return $res;
     }
 }

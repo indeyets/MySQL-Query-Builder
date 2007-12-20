@@ -228,4 +228,12 @@ class SelectQueryTest extends PHPUnit_Framework_TestCase
 
         $this->assertEquals('SELECT `t0`.* FROM `db2`.`test` AS `t0`', $q->sql());
     }
+
+    public function testUseIndex()
+    {
+        $q = new SelectQuery('test');
+        $q->setIndices(array('abc', 'def'));
+
+        $this->assertEquals('SELECT `t0`.* FROM `test` AS `t0` USE INDEX (`abc`, `def`)', $q->sql());
+    }
 }
