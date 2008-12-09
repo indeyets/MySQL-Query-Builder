@@ -332,15 +332,23 @@ class Condition implements MQB_Condition
     private $validConditions = array("=", "<>", "<", ">", ">=", "<=", "like", "is null", "find_in_set", "and", "or", "xor", "in");
     private $validSingulars = array("is null");
 
-    public function __construct($comparison, $left, $right = null)
+    /**
+     * Designated constructor.
+     * First parameter should be one of the allowed comparator-strings
+     * Second parameter should be some MQB_Field-compliant object
+     * Third parameter is the value, which is compared against second-parameter. It should be either scalar-value, or another MQB_Field
+     *
+     * @param string $comparison 
+     * @param MQB_Field $left 
+     * @param mixed $right 
+     * @throws RangeException, InvalidArgumentException
+     */
+    public function __construct($comparison, MQB_Field $left, $right = null)
     {
         $comparison = strtolower($comparison);
 
         if (!in_array($comparison, $this->validConditions))
             throw new RangeException('invalid comparator-function');
-
-        if (!is_object($left))
-            throw new InvalidArgumentException('First member of comparision should be an object');
 
         if (!in_array($comparison, $this->validSingulars) and is_scalar($right))
             $right = new Parameter($right);
@@ -383,28 +391,56 @@ class Condition implements MQB_Condition
         }
     }
 
+    /**
+     * accessor which returns comparator
+     *
+     * @return string
+     */
     public function getComparison()
     {
         return $this->content[0];
     }
 
+    /**
+     * accessor which returns left-parameter of comparison
+     *
+     * @return MQB_Field
+     */
     public function getLeft()
     {
         return $this->content[1];
     }
 
+    /**
+     * accessor which returns right-parameter of comparison
+     *
+     * @return mixed
+     */
     public function getRight()
     {
         return $this->content[2];
     }
 }
 
+/**
+ * Representation of the Field of N-th Table in Query
+ *
+ * @package mysql-query-builder
+ */
 class Field implements MQB_Field
 {
     private $name;
     private $table;
     private $alias;
 
+    /**
+     * Designated constructor. Used to create representation of 'tN.field as alias' construction, which can be referred from various parts of query
+     *
+     * @param string $name 
+     * @param integer $table 
+     * @param string $alias 
+     * @throws RangeException
+     */
     public function __construct($name, $table = 0, $alias = null)
     {
         if (!$name)
@@ -430,16 +466,31 @@ class Field implements MQB_Field
         return $res;
     }
 
+    /**
+     * accessor for internal "number of table in query" property
+     *
+     * @return integer
+     */
     public function getTable()
     {
         return $this->table;
     }
 
+    /**
+     * accessor for internal "name of the field" property
+     *
+     * @return string
+     */
     public function getName()
     {
         return $this->name;
     }
 
+    /**
+     * accessor for internal "number of alias" property. returns NULL, if alias is not set
+     *
+     * @return string|null
+     */
     public function getAlias()
     {
         if (null === $this->alias)
@@ -449,10 +500,20 @@ class Field implements MQB_Field
     }
 }
 
+/**
+ * Class, which represents 'table.*' concept
+ *
+ * @package mysql-query-builder
+ */
 class AllFields
 {
     private $table;
 
+    /**
+     * Designated constructor. Takes "number of table in query" as the parameter
+     *
+     * @param integer $table 
+     */
     public function __construct($table = 0)
     {
         $this->table = $table;
@@ -463,12 +524,22 @@ class AllFields
         return '`t'.$this->table."`.*";
     }
 
+    /**
+     * accessor for internal "number of table in query" property
+     *
+     * @return integer
+     */
     public function getTable()
     {
         return $this->table;
     }
 }
 
+/**
+ * Class, which represents SQL-Functions used as columns in query
+ *
+ * @package mysql-query-builder
+ */
 class SqlFunction implements MQB_Field
 {
     private $name;
@@ -477,6 +548,15 @@ class SqlFunction implements MQB_Field
 
     private $validNames = array('substring', 'year', 'month', 'day', 'date');
 
+    /**
+     * Designated constructor, which generates representation of '$name($value1, $value2, ... $valueN) as $alias' sql-construct
+     * $values can either be literal, MQB_Field or array of literals and MQB_Fields
+     *
+     * @param string $name 
+     * @param mixed $values 
+     * @param string $alias 
+     * @throws InvalidArgumentException
+     */
     public function __construct($name, $values, $alias = null)
     {
         if (!is_string($name) or !in_array($name, $this->validNames))
@@ -523,6 +603,11 @@ class SqlFunction implements MQB_Field
         return $result;
     }
 
+    /**
+     * accessor for internal "number of alias" property. returns NULL, if alias is not set
+     *
+     * @return string|null
+     */
     public function getAlias()
     {
         if (null === $this->alias)
@@ -531,12 +616,22 @@ class SqlFunction implements MQB_Field
         return '`'.$this->alias.'`';
     }
 
+    /**
+     * accessor for internal "name of the function" property
+     *
+     * @return string
+     */
     public function getName()
     {
         return $this->name;
     }
 }
 
+/**
+ * Class, which represents SQLs aggregate-functions used as columns in query
+ *
+ * @package mysql-query-builder
+ */
 class Aggregate implements MQB_Field
 {
     private $aggregate;
@@ -547,8 +642,21 @@ class Aggregate implements MQB_Field
     private $validAggregates = array("sum", "count", "min", "max", "avg");
     private $field = null;
 
+    /**
+     * Creates representation of SQLs aggregate-function.
+     * $field can be null, if $aggregate is 'count' — this would result in COUNT(*) query. 
+     * If $distinct is set to true, then something like the following will appear: COUNT(DISTINCT `foo`) AS `alias`
+     *
+     * @param string $aggregate 
+     * @param string $field 
+     * @param bool $distinct 
+     * @param string $alias 
+     * @throws RangeException, InvalidArgumentException
+     */
     public function __construct($aggregate, $field = null, $distinct=false, $alias=null)
     {
+        $aggregate = strtolower($aggregate);
+
         if (!in_array($aggregate, $this->validAggregates))
             throw new RangeException('Invalid aggregate function: '.$aggregate);
 
@@ -588,6 +696,11 @@ class Aggregate implements MQB_Field
         return $field_sql;
     }
 
+    /**
+     * accessor for internal "number of alias" property. returns NULL, if alias is not set
+     *
+     * @return string|null
+     */
     public function getAlias()
     {
         if (null === $this->alias)
@@ -597,10 +710,21 @@ class Aggregate implements MQB_Field
     }
 }
 
+/**
+ * Class, which represents literal parameter in SQL-queries.
+ * value is never directly used in query, instead, it is put array, which is later used for executing prepared SQL-statement
+ *
+ * @package mysql-query-builder
+ */
 class Parameter
 {
     private $content;
 
+    /**
+     * Creates representation of literal-value, passed as the single parameter
+     *
+     * @param string|integer|bool|null $content 
+     */
     public function __construct($content)
     {
         $this->content = $content;
@@ -615,6 +739,11 @@ class Parameter
         return ":p".$number;
     }
 
+    /**
+     * accessor, which returns value of parameter
+     *
+     * @return mixed
+     */
     public function getParameters()
     {
         return $this->content;
