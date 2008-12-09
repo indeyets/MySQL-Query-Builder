@@ -20,6 +20,12 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+/**
+ * This class contains logic of "INSERT" queries
+ *
+ * @package mysql-query-builder
+ * @author Alexey Zakhlestin
+ */
 class InsertQuery extends BasicQuery
 {
     private $values;
@@ -35,7 +41,7 @@ class InsertQuery extends BasicQuery
         $this->on_duplicate_update = $on_duplicate_update;
     }
 
-    private function __set($key, $value)
+    public function __set($key, $value)
     {
         $this->values[$key] = new Parameter($value);
         $this->reset();
@@ -89,15 +95,16 @@ class InsertQuery extends BasicQuery
 
     private function getUpdate(&$parameters)
     {
-        if (!isset($this->values['id']))
-            throw new LogicException("id field is required for ON DUPLICATE KEY UPDATE functionality");
+        // if (!isset($this->values['id']))
+        //     throw new LogicException("id field is required for ON DUPLICATE KEY UPDATE functionality");
 
         $values = array();
         foreach ($this->values as $k => $v) {
-            if ('id' == $k) // skipping (FIXMIE: не всегда первичным ключом является id)
-                continue;
-
-            $values[] = '`'.$k.'` = '.$v->getSql($parameters);
+            if ('id' == $k) { // FIXME: не всегда первичным ключом является id
+                $values[] = '`id` = LAST_INSERT_ID(`id`)';
+            } else {
+                $values[] = '`'.$k.'` = VALUES(`'.$k.'`)';
+            }
         }
 
         $sql = " ON DUPLICATE KEY UPDATE ".implode(", ", $values);

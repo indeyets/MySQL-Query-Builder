@@ -20,6 +20,12 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+/**
+ * This class contains all the common logic shared by other query-classes
+ *
+ * @package mysql-query-builder
+ * @author Alexey Zakhlestin
+ */
 class BasicQuery
 {
     private $limit = null;
@@ -36,6 +42,13 @@ class BasicQuery
         $this->setTables($tables);
     }
 
+    /**
+     * Sets which table(s) the query will be applied to
+     *
+     * @param mixed $tables Can be either string, QBTable instance or array of strings/QBTables
+     * @return void
+     * @throws InvalidArgumentException, LogicException
+     */
     public function setTables($tables)
     {
         if (is_string($tables) or $tables instanceof QBTable)
@@ -61,14 +74,19 @@ class BasicQuery
         $this->reset();
     }
 
-    public function setWhere($conditions = null)
+    /**
+     * Sets where-condition, which will be applied to query
+     *
+     * @param MQB_Condition $conditions 
+     * @return void
+     * @author Jimi Dini
+     */
+    public function setWhere(MQB_Condition $conditions = null)
     {
         if (null === $conditions) {
             $this->conditions = null;
         } elseif ($conditions instanceof MQB_Condition) {
             $this->conditions = clone $conditions;
-        } else {
-            throw new InvalidArgumentException('Specified where-condition is not a valid object');
         }
 
         $this->reset();

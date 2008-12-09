@@ -20,6 +20,12 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+/**
+ * This class contains logic of "DELETE" queries
+ *
+ * @package mysql-query-builder
+ * @author Alexey Zakhlestin
+ */
 class DeleteQuery extends BasicQuery
 {
     private $del_limit = null;

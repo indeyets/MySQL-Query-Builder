@@ -49,13 +49,12 @@ class InsertQueryTest extends PHPUnit_Framework_TestCase
             'field2' => 'value2'
         ));
 
-        $this->assertEquals('INSERT INTO `test` (`id`, `field1`, `field2`) VALUES (:p1, :p2, :p3) ON DUPLICATE KEY UPDATE `field1` = :p4, `field2` = :p5', $q->sql());
+        $this->assertEquals('INSERT INTO `test` (`id`, `field1`, `field2`) VALUES (:p1, :p2, :p3) ON DUPLICATE KEY UPDATE `id` = LAST_INSERT_ID(`id`), `field1` = VALUES(`field1`), `field2` = VALUES(`field2`)', $q->sql());
         $params = $q->parameters();
 
         $this->assertEquals('35', $params[':p1']);
         $this->assertEquals('value1', $params[':p2']);
         $this->assertEquals('value2', $params[':p3']);
-        $this->assertEquals('value1', $params[':p4']);
-        $this->assertEquals('value2', $params[':p5']);
+        $this->assertEquals(3, count($params));
     }
 }

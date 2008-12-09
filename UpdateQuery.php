@@ -20,6 +20,12 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+/**
+ * This class contains logic of "UPDATE" queries
+ *
+ * @package mysql-query-builder
+ * @author Alexey Zakhlestin
+ */
 class UpdateQuery extends BasicQuery
 {
     private $set_fields = null;
@@ -34,7 +40,7 @@ class UpdateQuery extends BasicQuery
         $this->set_values = array();
     }
 
-    private function __set($key, $value)
+    public function __set($key, $value)
     {
         $this->set_fields[] = new Field($key);
         $this->set_values[] = new Parameter($value);

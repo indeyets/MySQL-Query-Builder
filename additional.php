@@ -70,6 +70,11 @@ class Operator implements MQB_Condition
 
     protected function __construct(array $content)
     {
+        $this->setContent($content);
+    }
+
+    public function setContent(array $content)
+    {
         foreach ($content as $c) {
             if (!is_object($c) or !($c instanceof MQB_Condition)) {
                 throw new InvalidArgumentException("Operators should be given valid Operators or Conditions as parameters");
@@ -77,6 +82,11 @@ class Operator implements MQB_Condition
         }
 
         $this->content = $content;
+    }
+
+    public function getContent()
+    {
+        return $this->content;
     }
 
     public function getSql(array &$parameters)
@@ -110,24 +120,24 @@ class NotOp extends Operator
             $content = $content[0];
         }
 
-        if (!is_object($content) or !($content instanceof MQB_Condition)) {
-            throw new InvalidArgumentException("Operators should be given valid Operators or Conditions as parameters");
-        }
-
-        $this->my_content = $content;
+        parent::__construct(array($content));
     }
 
     public function getSql(array &$parameters)
     {
-        return 'NOT ('.$this->my_content->getSql($parameters).')';
+        $content = $this->getContent();
+        return 'NOT ('.$content[0]->getSql($parameters).')';
     }
 }
 
 class AndOp extends Operator
 {
-    public function __construct(array $content)
+    public function __construct($content)
     {
-        parent::__construct($content);
+        if (func_num_args() > 1)
+            parent::__construct(func_get_args());
+        else
+            parent::__construct($content);
 
         $this->startSql = "("; 
         $this->implodeSql = " AND ";
@@ -137,9 +147,12 @@ class AndOp extends Operator
 
 class OrOp extends Operator
 {
-    public function __construct(array $content)
+    public function __construct($content)
     {
-        parent::__construct($content);
+        if (func_num_args() > 1)
+            parent::__construct(func_get_args());
+        else
+            parent::__construct($content);
 
         $this->startSql = "(";
         $this->implodeSql = " OR ";
@@ -149,9 +162,13 @@ class OrOp extends Operator
 
 class XorOp extends Operator
 {
-    public function __construct(array $content)
+    public function __construct($content)
     {
-        parent::__construct($content);
+        if (func_num_args() > 1)
+            parent::__construct(func_get_args());
+        else
+            parent::__construct($content);
+
         $this->startSql = "(";
         $this->implodeSql = " XOR ";
         $this->endSql = ")";
@@ -395,22 +412,26 @@ class Aggregate implements MQB_Field
 
     }
 
-    public function getSql(array &$parameters)
+    public function getSql(array &$parameters, $full = false)
     {
-        if (null === $this->field) {
-            $field_sql = '*';
+        if (true === $full or null === $this->alias) {
+            if (null === $this->field) {
+                $field_sql = '*';
+            } else {
+                $field_sql = $this->field->getSql($parameters);
+            }
+
+            if ($this->distinct) {
+                $field_sql = 'DISTINCT '.$field_sql;
+            }
+
+            $field_sql = strtoupper($this->aggregate).'('.$field_sql.')';
+
+            if (null !== $this->alias) {
+                $field_sql .= ' AS `'.$this->alias.'`';
+            }
         } else {
-            $field_sql = $this->field->getSql($parameters);
-        }
-
-        if ($this->distinct) {
-            $field_sql = 'DISTINCT '.$field_sql;
-        }
-
-        $field_sql = strtoupper($this->aggregate).'('.$field_sql.')';
-
-        if (null !== $this->alias) {
-            $field_sql .= ' AS `'.$this->alias.'`';
+            $field_sql = '`'.$this->alias.'`';
         }
 
         return $field_sql;

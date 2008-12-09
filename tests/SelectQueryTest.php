@@ -131,13 +131,6 @@ class SelectQueryTest extends PHPUnit_Framework_TestCase
 
         try {
             $q = new SelectQuery('test');
-            $q->setWhere(array());
-            $this->fail("condition should be valid");
-        } catch (InvalidArgumentException $e) {
-        }
-
-        try {
-            $q = new SelectQuery('test');
             $q->setHaving('boom');
             $this->fail("condition should be valid");
         } catch (InvalidArgumentException $e) {

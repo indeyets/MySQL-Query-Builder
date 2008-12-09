@@ -19,6 +19,13 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
+
+/**
+ * This class contains logic of "SELECT" queries
+ *
+ * @package mysql-query-builder
+ * @author Alexey Zakhlestin
+ */
 class SelectQuery extends BasicQuery
 {
     private $selects = null;
@@ -89,7 +96,7 @@ class SelectQuery extends BasicQuery
     {
         return $this->getSelect($parameters).
             $this->getFrom($parameters).
-            $this->getIndices().
+            // $this->getIndices().
             $this->getWhere($parameters).
             $this->getGroupby($parameters).
             $this->getHaving($parameters).
@@ -111,6 +118,21 @@ class SelectQuery extends BasicQuery
         }
 
         return $res.implode(", ", $sqls);
+    }
+
+    protected function getFrom(&$parameters)
+    {
+        $froms = array();
+        for ($i = 0; $i < count($this->from); $i++) {
+            $_str = $this->from[$i]->__toString().' AS `t'.$i.'`';
+            if (0 == $i)
+                $_str .= $this->getIndices();
+            $froms[] = $_str;
+        }
+
+        $sql = ' FROM '.implode(", ", $froms);
+
+        return $sql;
     }
 
     private function getGroupby(&$parameters)
