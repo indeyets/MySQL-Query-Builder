@@ -35,12 +35,28 @@ class SelectQuery extends BasicQuery
 
     private $distinct = false;
 
+    /**
+     * Creates new SELECT-query object.
+     * By default, it is equivalent of "SELECT t0.* FROM t0, t1, t2, tN", where t0-tN are tables given to this constructor
+     *
+     * @param mixed $tables 
+     */
     public function __construct($tables)
     {
         parent::__construct($tables);
         $this->setSelect(array(new AllFields()));
     }
 
+    /**
+     * Specifies, which columns should be selected.
+     * $_select can be instance of AllFields, MQB_Field or array of such instances.
+     * If $distinct is set to TRUE, 'SELECT DISTINCT …' query shall be used
+     *
+     * @param mixed $_selects 
+     * @param bool $distinct 
+     * @return void
+     * @throws InvalidArgumentException, RangeException
+     */
     public function setSelect($_selects, $distinct = false)
     {
         if (!is_array($_selects)) {
@@ -57,7 +73,7 @@ class SelectQuery extends BasicQuery
 
         foreach ($_selects as $s) {
             if (!($s instanceof MQB_Field) and !($s instanceof AllFields))
-                throw new RangeException('Allowed values are objects of the following classes: Field, AllFields, sqlFunction и Aggregate');
+                throw new RangeException('Allowed values are objects of the following classes: Field, AllFields, sqlFunction and Aggregate');
         }
 
         $this->selects = $_selects;
@@ -65,6 +81,13 @@ class SelectQuery extends BasicQuery
         $this->reset();
     }
 
+    /**
+     * Specifies, which index(es) should be preferred for the first table of query
+     * $indices should be either string or array of strings
+     *
+     * @param mixed $indices 
+     * @return void
+     */
     public function setIndices($indices)
     {
         if (!is_array($indices)) {
@@ -74,6 +97,14 @@ class SelectQuery extends BasicQuery
         $this->indices = $indices;
     }
 
+    /**
+     * Specifies, if the query should use "GROUP BY" clause.
+     * MQB_Field of array of MQB_Fields is allowed as parameter
+     *
+     * @param mixed $orderlist 
+     * @return void
+     * @throws InvalidArgumentException
+     */
     public function setGroupby($orderlist)
     {
         if (!is_array($orderlist))
@@ -87,6 +118,11 @@ class SelectQuery extends BasicQuery
         $this->reset();
     }
 
+    /**
+     * Accessor, which returns internal "GROUP BY" array
+     *
+     * @return array
+     */
     public function showGroupBy()
     {
         return $this->groupby;
@@ -150,14 +186,19 @@ class SelectQuery extends BasicQuery
         return " GROUP BY ".implode(", ", $sqls);
     }
 
-    public function setHaving($conditions = null)
+    /**
+     * Specifies "HAVING" clause of query
+     *
+     * @param MQB_Condition $conditions 
+     * @return void
+     * @author Jimi Dini
+     */
+    public function setHaving(MQB_Condition $conditions = null)
     {
         if (null === $conditions) {
             $this->havings = null;
         } elseif ($conditions instanceof MQB_Condition) {
             $this->havings = clone $conditions;
-        } else {
-            throw new InvalidArgumentException('setHaving accepts either NULL or MQB_Condition as a parameter');
         }
 
         $this->reset();

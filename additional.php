@@ -20,28 +20,75 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+/**
+ * Defines set of methods, which must be implemented by any "CONDITION" object
+ *
+ * @package mysql-query-builder
+ */
 interface MQB_Condition
 {
+    /**
+     * used for generation of "prepared" SQL-queries. Supposed to be used recursively, and add parameters to the end of $parameters stack
+     *
+     * @param array $parameters 
+     * @return string
+     */
     public function getSql(array &$parameters);
 }
 
+/**
+ * Defines set of methods, which must be implemented by any object, which is used as a Field of result-set row
+ *
+ * @package mysql-query-builder
+ */
 interface MQB_Field
 {
+    /**
+     * used for generation of "prepared" SQL-queries. Supposed to be used recursively, and add parameters to the end of $parameters stack
+     *
+     * @param array $parameters 
+     * @return string
+     */
     public function getSql(array &$parameters);
+
+    /**
+     * returns "alias" name of field
+     *
+     * @return string
+     * @author Jimi Dini
+     */
     public function getAlias();
 }
 
+
+
+/**
+ * Represents the table-entity of SQL-query
+ *
+ * @package mysql-query-builder
+ */
 class QBTable
 {
     private $table_name = null;
     private $db_name = null;
 
+    /**
+     * Designated constructor of table-object.
+     *
+     * @param string $table_name 
+     * @param string $db_name 
+     */
     public function __construct($table_name, $db_name = null)
     {
         $this->table_name = $table_name;
         $this->db_name = $db_name;
     }
 
+    /**
+     * accessor, which returns sql-friendly (escaped) string-representation of table
+     *
+     * @return string
+     */
     public function __toString()
     {
         $res = '';
@@ -55,12 +102,22 @@ class QBTable
         return $res;
     }
 
+    /**
+     * accessor, which returns raw table-name (without database-name)
+     *
+     * @return string
+     */
     public function getTable()
     {
         return $this->table_name;
     }
 }
 
+/**
+ * generic Operator class. You can't instantiate this directly
+ *
+ * @package mysql-query-builder
+ */
 class Operator implements MQB_Condition
 {
     private $content = array();
@@ -73,6 +130,13 @@ class Operator implements MQB_Condition
         $this->setContent($content);
     }
 
+    /**
+     * Specifies array of MQB_Conditions, which should be used as the content of Operator
+     *
+     * @param array $content 
+     * @return void
+     * @throws InvalidArgumentException
+     */
     public function setContent(array $content)
     {
         foreach ($content as $c) {
@@ -84,6 +148,11 @@ class Operator implements MQB_Condition
         $this->content = $content;
     }
 
+    /**
+     * accessor, which returns internal content-array
+     *
+     * @return array
+     */
     public function getContent()
     {
         return $this->content;
@@ -106,10 +175,21 @@ class Operator implements MQB_Condition
     }
 }
 
+/**
+ * Class, which implements SQLs "NOT()" operator
+ *
+ * @package mysql-query-builder
+ */
 class NotOp extends Operator
 {
     private $my_content = null;
 
+    /**
+     * designated constructor. takes either MQB_Condition or array consisting of the single MQB_Condition
+     *
+     * @param mixed $content
+     * @throws InvalidArgumentException
+     */
     public function __construct($content)
     {
         if (is_array($content)) {
@@ -130,8 +210,19 @@ class NotOp extends Operator
     }
 }
 
+/**
+ * Class, which implements SQLs "AND" operator
+ *
+ * @package mysql-query-builder
+ */
 class AndOp extends Operator
 {
+    /**
+     * Designated constructor.
+     * Takes either single parameter — array of MQB_Conditions or several parameters-MQB_Conditions
+     *
+     * @param string|array $content,...
+     */
     public function __construct($content)
     {
         if (func_num_args() > 1)
@@ -143,10 +234,32 @@ class AndOp extends Operator
         $this->implodeSql = " AND ";
         $this->endSql = ")";
     }
+
+    public function getSql(array &$parameters)
+    {
+        $content = $this->getContent();
+
+        // shortcut
+        if (count($content) == 1)
+            return $content[0]->getSql($parameters);
+
+        return parent::getSql($parameters);
+    }
 }
 
+/**
+ * Class, which implements SQLs "OR" operator
+ *
+ * @package mysql-query-builder
+ */
 class OrOp extends Operator
 {
+    /**
+     * Designated constructor.
+     * Takes either single parameter — array of MQB_Conditions or several parameters-MQB_Conditions
+     *
+     * @param string|array $content,...
+     */
     public function __construct($content)
     {
         if (func_num_args() > 1)
@@ -158,10 +271,32 @@ class OrOp extends Operator
         $this->implodeSql = " OR ";
         $this->endSql = ")";
     }
+
+    public function getSql(array &$parameters)
+    {
+        $content = $this->getContent();
+
+        // shortcut
+        if (count($content) == 1)
+            return $content[0]->getSql($parameters);
+
+        return parent::getSql($parameters);
+    }
 }
 
+/**
+ * Class, which implements SQLs "XOR()" operator
+ *
+ * @package mysql-query-builder
+ */
 class XorOp extends Operator
 {
+    /**
+     * Designated constructor.
+     * Takes either single parameter — array of MQB_Conditions or several parameters-MQB_Conditions
+     *
+     * @param string|array $content,...
+     */
     public function __construct($content)
     {
         if (func_num_args() > 1)
@@ -173,8 +308,24 @@ class XorOp extends Operator
         $this->implodeSql = " XOR ";
         $this->endSql = ")";
     }
+
+    public function getSql(array &$parameters)
+    {
+        $content = $this->getContent();
+
+        // shortcut
+        if (count($content) == 1)
+            return $content[0]->getSql($parameters);
+
+        return parent::getSql($parameters);
+    }
 }
 
+/**
+ * Class, which implements generic Condition. Actually, almost any condition can be implemented using it
+ *
+ * @package mysql-query-builder
+ */
 class Condition implements MQB_Condition
 {
     private $content = array();

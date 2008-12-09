@@ -76,6 +76,7 @@ class BasicQuery
 
     /**
      * Sets where-condition, which will be applied to query
+     * The most typical objects to use as parameters are Condition and AndOp
      *
      * @param MQB_Condition $conditions 
      * @return void
@@ -92,6 +93,17 @@ class BasicQuery
         $this->reset();
     }
 
+    /**
+     * setup "ORDER BY" clause of Query.
+     * $orderlist is supposed to be array of objects implementing MQB_Field (most-probably, Field objects).
+     * $orderdirectionlist is supposed to be array of booleans, where TRUE means DESC and FALSE means ASC.
+     * if number of elements of $orderdirectionlist is smaller that number of elements of $orderlist array, then ASC is applied to the tail-objects
+     *
+     * @param array $orderlist 
+     * @param array $orderdirectionlist 
+     * @return void
+     * @throws InvalidArgumentException
+     */
     public function setOrderby(array $orderlist, array $orderdirectionlist = array())
     {
         foreach ($orderlist as $field)
@@ -104,6 +116,14 @@ class BasicQuery
         $this->reset();
     }
 
+    /**
+     * setup "LIMIT" clause of Query.
+     *
+     * @param integer $limit 
+     * @param integer $offset 
+     * @return void
+     * @throws InvalidArgumentException
+     */
     public function setLimit($limit, $offset=0)
     {
         if (!is_numeric($limit) or !is_numeric($offset))
@@ -112,7 +132,11 @@ class BasicQuery
         $this->limit = array($limit, $offset);
     }
 
-    //
+    /**
+     * accessor, which returns array of table-names used in Query.
+     *
+     * @return array
+     */
     public function showTables()
     {
         $res = array();
@@ -123,13 +147,22 @@ class BasicQuery
         return $res;
     }
 
+    /**
+     * accessor, which returns current-querys condition
+     *
+     * @return MQB_Condition
+     */
     public function showConditions()
     {
         return $this->conditions;
     }
 
-
     // internal stuff
+    protected function getSql(&$parameters)
+    {
+        throw new LogicException();
+    }
+
     protected function getFrom(&$parameters)
     {
         $froms = array();
@@ -189,7 +222,11 @@ class BasicQuery
         $this->sql = null;
     }
 
-    // get your PDO string here
+    /**
+     * rebuilds (if needed) and returns SQL-string, which can be used for "prepared" query
+     *
+     * @return string
+     */
     public function sql()
     {
         if (null === $this->sql) {
@@ -200,9 +237,19 @@ class BasicQuery
         return $this->sql;
     }
 
-    // get your PDO parameters here
+    /**
+     * returns array of parameters, which can be used with SQL-string from ->sql() method.
+     * WARNING: this method does not rebuild SQL-Query. Be sure to call ->sql() before using it.
+     *
+     * @return array
+     * @author Jimi Dini
+     */
     public function parameters()
     {
+        if (null === $this->sql) {
+            throw new LogicException('->sql() method should be called, before calling ->parameters() method');
+        }
+
         return $this->parameters;
     }
 }

@@ -128,13 +128,6 @@ class SelectQueryTest extends PHPUnit_Framework_TestCase
             $this->fail("tables param should be either string or QBTable!");
         } catch (LogicException $e) {
         }
-
-        try {
-            $q = new SelectQuery('test');
-            $q->setHaving('boom');
-            $this->fail("condition should be valid");
-        } catch (InvalidArgumentException $e) {
-        }
     }
 
     public function testAggregate()

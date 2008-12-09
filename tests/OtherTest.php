@@ -27,6 +27,19 @@ class OtherTest extends PHPUnit_Framework_TestCase
         $params = array();
         $op = new XorOp(array(new Condition('=', new Field('test'), '1'), new Condition('=', new Field('test'), '2')));
         $this->assertEquals('(`t0`.`test` = :p1 XOR `t0`.`test` = :p2)', $op->getSql($params));
+
+        // testing shortcuts
+        $params = array();
+        $op = new AndOp(array(new Condition('=', new Field('foo'), 'bar')));
+        $this->assertEquals('`t0`.`foo` = :p1', $op->getSql($params));
+
+        $params = array();
+        $op = new OrOp(array(new Condition('=', new Field('foo'), 'bar')));
+        $this->assertEquals('`t0`.`foo` = :p1', $op->getSql($params));
+
+        $params = array();
+        $op = new XorOp(array(new Condition('=', new Field('foo'), 'bar')));
+        $this->assertEquals('`t0`.`foo` = :p1', $op->getSql($params));
     }
 
     public function testCondition()
