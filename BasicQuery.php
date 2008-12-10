@@ -35,8 +35,18 @@ class BasicQuery
     private $orderby;
     private $orderdirection;
 
+    /**
+     * contains QBTable objects related to current query
+     *
+     * @var array
+     */
     protected $from = array();
 
+    /**
+     * Constructor provides common logic (all queries are done on tables), but does not direct instantiation of BasicQuery
+     *
+     * @param mixed $tables 
+     */
     protected function __construct($tables)
     {
         $this->setTables($tables);
@@ -158,12 +168,26 @@ class BasicQuery
     }
 
     // internal stuff
-    protected function getSql(&$parameters)
+
+    /**
+     * This method should be overridden by descendents
+     *
+     * @param array $parameters 
+     * @return void
+     * @throws LogicException
+     */
+    protected function getSql(array &$parameters)
     {
         throw new LogicException();
     }
 
-    protected function getFrom(&$parameters)
+    /**
+     * Returns "FROM" clause which can be used in various queries
+     *
+     * @param array $parameters 
+     * @return void
+     */
+    protected function getFrom(array &$parameters)
     {
         $froms = array();
         for ($i = 0; $i < count($this->from); $i++) {
@@ -175,7 +199,13 @@ class BasicQuery
         return $sql;
     }
 
-    protected function getWhere(&$parameters)
+    /**
+     * Returns "WHERE" clause which can be used in various queries
+     *
+     * @param array $parameters 
+     * @return void
+     */
+    protected function getWhere(array &$parameters)
     {
         if (null === $this->conditions)
             return "";
@@ -188,7 +218,13 @@ class BasicQuery
         return " WHERE ".$sql;
     }
 
-    protected function getOrderby(&$parameters)
+    /**
+     * Returns "ORDER BY" clause which can be used in various queries
+     *
+     * @param array $parameters 
+     * @return void
+     */
+    protected function getOrderby(array &$parameters)
     {
         if (!$this->orderby || !is_array($this->orderby))
             return "";
@@ -208,7 +244,13 @@ class BasicQuery
         return " ORDER BY ".implode(", ", $sqls);
     }
 
-    protected function getLimit(&$parameters)
+    /**
+     * Returns "LIMIT" clause which can be used in various queries
+     *
+     * @param array $parameters 
+     * @return void
+     */
+    protected function getLimit(array &$parameters)
     {
         if (null === $this->limit)
             return "";
@@ -216,6 +258,11 @@ class BasicQuery
         return " LIMIT ".$this->limit[0].' OFFSET '.$this->limit[1];
     }
 
+    /**
+     * resets internal cache-structures, which are used for generation of sql-string and parameters-array
+     *
+     * @return void
+     */
     protected function reset()
     {
         $this->parameters = array();
