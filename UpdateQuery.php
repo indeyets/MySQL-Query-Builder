@@ -32,6 +32,13 @@ class UpdateQuery extends BasicQuery
     private $set_values = null;
     private $up_limit = null;
 
+    /**
+     * Creates new UPDATE-query object.
+     * By default, it is equivalent of "UPDATE t0, t1, t2, tN SET …", where t0-tN are tables given to this constructor
+     * Be sure to specify some fields to be updated, or query will fail to be generated
+     *
+     * @param mixed $tables 
+     */
     public function __construct($tables)
     {
         parent::__construct($tables);
@@ -40,6 +47,13 @@ class UpdateQuery extends BasicQuery
         $this->set_values = array();
     }
 
+    /**
+     * magic accessor, which lets setting parts of "SET …" clause with simple "$obj->field = 'value';" statements
+     *
+     * @param string $key 
+     * @param mixed $value 
+     * @return void
+     */
     public function __set($key, $value)
     {
         $this->set_fields[] = new Field($key);
@@ -47,38 +61,21 @@ class UpdateQuery extends BasicQuery
         $this->reset();
     }
 
-    protected function getSql(&$parameters)
-    {
-        if (null === $this->set_fields)
-            throw new LogicException("Nothing is specified to be set. Can't produce valid MySQL query");
-
-        return $this->getUpdate($parameters).
-            $this->getSet($parameters).
-            $this->getWhere($parameters).
-            $this->getOrderby($parameters).
-            $this->getLimit();
-    }
-
-    private function getUpdate(&$parameters)
-    {
-        $sql = 'UPDATE ';
-
-        for ($i = 0; $i < count($this->from); $i++) {
-            if ($i > 0)
-                $sql .= ', ';
-            $sql .= $this->from[$i]->__toString().' AS `t'.$i.'`';
-        }
-
-        return $sql;
-    }
-
+    /**
+     * sets "SET …" clause of query to the new value. Array is supposed to be in one of the following formats: 
+     * 1) [field_name => value, field2 => value2, …] 
+     * 2) [[field_name, value], [field2, value2], …] 
+     *
+     * @param array $sets 
+     * @return void
+     */
     public function setValues(array $sets)
     {
-        if (count($sets) == 0)
-            return;
-
         $this->set_fields = array();
         $this->set_values = array();
+
+        if (count($sets) == 0)
+            return;
 
         foreach ($sets as $set => $value) {
             if (is_array($value)) {
@@ -98,19 +95,14 @@ class UpdateQuery extends BasicQuery
         $this->reset();
     }
 
-    protected function getSet(&$parameters)
-    {
-        if (null === $this->set_fields)
-            return "";
-
-        $sqls = array();
-        foreach ($this->set_fields as $i => $value) {
-           $sqls[] = $value->getSql($parameters).' = '.$this->set_values[$i]->getSql($parameters);
-        }
-
-        return " SET ".implode(", ", $sqls);
-    }
-
+    /**
+     * Sets maximum number of rows, the UPDATE query will be applied to.
+     * MySQL does not allow to specify offset, so, it is just a single number
+     *
+     * @param integer $limit 
+     * @return void
+     * @throws LogicException, InvalidArgumentException
+     */
     public function setLimit($limit)
     {
         if (count($this->from) != 1) {
@@ -123,11 +115,15 @@ class UpdateQuery extends BasicQuery
         $this->up_limit = (string)$limit;
     }
 
-    public function getLimit()
-    {
-        return (null == $this->up_limit) ? '' : ' LIMIT '.$this->up_limit;
-    }
-
+    /**
+     * wrapper around BasicQuery::setOrderBy, which additionally checks if it is allowed, to apply order to the query. 
+     * it is allowed only for single-table queries
+     *
+     * @param array $orderlist 
+     * @param array $orderdirectionlist 
+     * @return void
+     * @throws LogicException
+     */
     public function setOrderby(array $orderlist, array $orderdirectionlist = array())
     {
         if (count($this->from) != 1) {
@@ -135,5 +131,48 @@ class UpdateQuery extends BasicQuery
         }
 
         parent::setOrderby($orderlist, $orderdirectionlist);
+    }
+
+    protected function getSql(&$parameters)
+    {
+        if (null === $this->set_fields)
+            throw new LogicException("Nothing is specified to be set. Can't produce valid MySQL query");
+
+        return $this->getUpdate($parameters).
+            $this->getSet($parameters).
+            $this->getWhere($parameters).
+            $this->getOrderby($parameters).
+            $this->getLimit();
+    }
+
+    protected function getLimit()
+    {
+        return (null == $this->up_limit) ? '' : ' LIMIT '.$this->up_limit;
+    }
+
+    private function getUpdate(&$parameters)
+    {
+        $sql = 'UPDATE ';
+
+        for ($i = 0; $i < count($this->from); $i++) {
+            if ($i > 0)
+                $sql .= ', ';
+            $sql .= $this->from[$i]->__toString().' AS `t'.$i.'`';
+        }
+
+        return $sql;
+    }
+
+    protected function getSet(&$parameters)
+    {
+        if (null === $this->set_fields or 0 == count($this->set_fields))
+            throw new LogicException("Empty update-queries are forbidden");
+
+        $sqls = array();
+        foreach ($this->set_fields as $i => $value) {
+           $sqls[] = $value->getSql($parameters).' = '.$this->set_values[$i]->getSql($parameters);
+        }
+
+        return " SET ".implode(", ", $sqls);
     }
 }

@@ -51,14 +51,14 @@ class DeleteQueryTest extends PHPUnit_Framework_TestCase
         try {
             $q = new DeleteQuery(array('test', 'test2', 'test3'));
             $q->setLimit(10);
-            $this->assertEquals(true, false);
+            $this->fail('LIMIT should not be allowed on multi-table queries');
         } catch (LogicException $e) {
         }
 
         try {
             $q = new DeleteQuery(array('test', 'test2', 'test3'));
             $q->setOrderBy(array(new Field('field1')));
-            $this->assertEquals(true, false);
+            $this->fail('ORDER BY should not be allowed on multi-table queries');
         } catch (LogicException $e) {
         }
     }

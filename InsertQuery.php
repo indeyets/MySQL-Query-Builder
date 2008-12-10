@@ -31,6 +31,14 @@ class InsertQuery extends BasicQuery
     private $values;
     private $on_duplicate_update = false;
 
+    /**
+     * Constructor of INSERT query. 
+     * WARNING: INSERT can be applied only to the single table. You can use array as the first parameter of constructor, but it should be array of 1 element
+     *
+     * @param mixed $tables 
+     * @param bool $on_duplicate_update 
+     * @throws InvalidArgumentException
+     */
     public function __construct($tables, $on_duplicate_update = false)
     {
         parent::__construct($tables);
@@ -41,9 +49,34 @@ class InsertQuery extends BasicQuery
         $this->on_duplicate_update = $on_duplicate_update;
     }
 
+    /**
+     * magic accessor, which lets setting parts of "SET …" clause with simple "$obj->field = 'value';" statements
+     *
+     * @param string $key 
+     * @param mixed $value 
+     * @return void
+     */
     public function __set($key, $value)
     {
         $this->values[$key] = new Parameter($value);
+        $this->reset();
+    }
+
+    /**
+     * sets "SET …" clause of query to the new value. Array is supposed to be in the following format: 
+     * [field_name => value, field2 => value2, …] 
+     *
+     * @param array $values 
+     * @return void
+     */
+    public function setValues(array $values)
+    {
+        $this->values = array();
+
+        foreach ($values as $key => $value) {
+            $this->values[$key] = new Parameter($value);
+        }
+
         $this->reset();
     }
 
@@ -57,17 +90,6 @@ class InsertQuery extends BasicQuery
         }
 
         return $sql;
-    }
-
-    public function setValues(array $values)
-    {
-        $this->values = array();
-        foreach ($values as $key => $value) {
-            $this->values[$key] = new Parameter($value);
-        }
-        $this->reset();
-
-        return true;
     }
 
     private function getInsert(&$parameters)

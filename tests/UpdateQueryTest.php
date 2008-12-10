@@ -10,6 +10,7 @@ class UpdateQueryTest extends PHPUnit_Framework_TestCase
         try {
             $q = new UpdateQuery(array('test'));
             $sql = $q->sql();
+            $this->fail("allowed to generate empty query");
         } catch (LogicException $e) {
         }
     }
@@ -117,15 +118,40 @@ class UpdateQueryTest extends PHPUnit_Framework_TestCase
         try {
             $q = new UpdateQuery(array('test', 'test2', 'test3'));
             $q->setLimit(10);
-            $this->assertEquals(true, false);
+            $this->fail('LIMIT should not be allowed on multi-table queries');
         } catch (LogicException $e) {
         }
 
         try {
             $q = new UpdateQuery(array('test', 'test2', 'test3'));
             $q->setOrderBy(array(new Field('field1')));
-            $this->assertEquals(true, false);
+            $this->fail('ORDER BY should not be allowed on multi-table queries');
         } catch (LogicException $e) {
         }
+    }
+
+    public function testResettingOfSETClause()
+    {
+        $q = new UpdateQuery('test');
+        $q->setValues(array('foo' => 'bar'));
+
+        $sql = $q->sql();
+        $this->assertEquals('UPDATE `test` AS `t0` SET `t0`.`foo` = :p1', $sql);
+
+        $q->setValues(array());
+        $q->baz = 'bar';
+
+        $sql = $q->sql();
+        $this->assertEquals('UPDATE `test` AS `t0` SET `t0`.`baz` = :p1', $sql);
+    }
+
+    public function testAlternateSetSyntax()
+    {
+        $q = new UpdateQuery('test');
+        $q->setValues(array(array('foo', 'bar'), array('baz', 'bar')));
+
+        $sql = $q->sql();
+
+        $this->assertEquals('UPDATE `test` AS `t0` SET `t0`.`foo` = :p1, `t0`.`baz` = :p2', $sql);
     }
 }
