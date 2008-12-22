@@ -101,6 +101,14 @@ class OtherTest extends PHPUnit_Framework_TestCase
             $this->fail('wrong value accepted');
         } catch (InvalidArgumentException $e) {
         }
+
+        $q = new SelectQuery('test');
+        $q->setWhere(new Condition('>', new SqlFunction('length', new Field('foo')), 5));
+
+        $params = array();
+        $this->assertEquals('SELECT `t0`.* FROM `test` AS `t0` WHERE LENGTH(`t0`.`foo`) > :p1', $q->sql());
+        $parameters = $q->parameters();
+        $this->assertEquals('5', $parameters[':p1']);
     }
 
     public function testParameter()

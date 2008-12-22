@@ -546,7 +546,7 @@ class SqlFunction implements MQB_Field
     private $values;
     private $alias;
 
-    private $validNames = array('substring', 'year', 'month', 'day', 'date');
+    private $validNames = array('substring', 'year', 'month', 'day', 'date', 'length');
 
     /**
      * Designated constructor, which generates representation of '$name($value1, $value2, ... $valueN) as $alias' sql-construct
