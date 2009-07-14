@@ -80,6 +80,18 @@ class OtherTest extends PHPUnit_Framework_TestCase
 
         $f = new AllFields(2);
         $this->assertEquals(2, $f->getTable());
+
+        try {
+            $f = new Field(array('1'));
+            $this->fail('first parameter should be string (array is not allowed)');
+        } catch (InvalidArgumentException $e) {
+        }
+
+        try {
+            $f = new Field('foo', 'bar');
+            $this->fail('second parameter has to be numeric');
+        } catch (InvalidArgumentException $e) {
+        }
     }
 
     public function testSqlFunctions()

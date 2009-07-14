@@ -354,9 +354,6 @@ class Condition implements MQB_Condition
         if (!in_array($comparison, $this->validConditions))
             throw new RangeException('invalid comparator-function');
 
-        if (!in_array($comparison, $this->validSingulars) and is_scalar($right))
-            $right = new Parameter($right);
-
         if ($comparison == 'in') {
             if (!is_array($right)) {
                 throw new InvalidArgumentException('Right-op has to be ARRAY, if comparison is "in"');
@@ -366,6 +363,12 @@ class Condition implements MQB_Condition
                 if (!is_numeric($value)) {
                     throw new InvalidArgumentException('Right-op has to be array consisting of NUMERIC VALUES, if comparison is "in"');
                 }
+            }
+        } elseif (!in_array($comparison, $this->validSingulars)) {
+            if (is_scalar($right)) {
+                $right = new Parameter($right);
+            } elseif (null !== $right and !($right instanceof Parameter) and !($right instanceof MQB_Field)) {
+                throw new InvalidArgumentException('Right-op has to be Parameter or MQB_Field. Got '.get_class($right).' instead');
             }
         }
 
@@ -449,6 +452,9 @@ class Field implements MQB_Field
     {
         if (!$name)
             throw new RangeException('Name of the field is not specified');
+
+        if (!is_string($name) or !is_numeric($table))
+            throw new InvalidArgumentException();
 
         $this->table = $table;
         $this->name = $name;
