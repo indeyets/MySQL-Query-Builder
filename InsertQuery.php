@@ -84,7 +84,7 @@ class InsertQuery extends BasicQuery
         $this->reset();
     }
 
-    protected function getSql(&$parameters)
+    protected function getSql(array &$parameters)
     {
         $sql = $this->getInsert($parameters);
         $sql .= $this->getValues($parameters);

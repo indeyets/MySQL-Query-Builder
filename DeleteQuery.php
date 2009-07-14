@@ -79,7 +79,7 @@ class DeleteQuery extends BasicQuery
         $this->del_limit = (string)$limit;
     }
 
-    protected function getSql(&$parameters)
+    protected function getSql(array &$parameters)
     {
         $sql  = $this->getDelete($parameters);
         $sql .= $this->getUsing($parameters);

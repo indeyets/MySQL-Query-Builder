@@ -137,7 +137,7 @@ class UpdateQuery extends BasicQuery
         parent::setOrderby($orderlist, $orderdirectionlist);
     }
 
-    protected function getSql(&$parameters)
+    protected function getSql(array &$parameters)
     {
         if (null === $this->set_fields)
             throw new LogicException("Nothing is specified to be set. Can't produce valid MySQL query");

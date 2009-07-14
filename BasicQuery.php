@@ -30,9 +30,8 @@
  * @package mysql-query-builder
  * @author Alexey Zakhlestin
  */
-class BasicQuery
+abstract class BasicQuery
 {
-    private $limit = null;
     private $conditions = null;
     private $parameters;
     private $sql = null;
@@ -128,22 +127,6 @@ class BasicQuery
         $this->orderdirection = $orderdirectionlist;
 
         $this->reset();
-    }
-
-    /**
-     * setup "LIMIT" clause of Query.
-     *
-     * @param integer $limit 
-     * @param integer $offset 
-     * @return void
-     * @throws InvalidArgumentException
-     */
-    public function setLimit($limit, $offset=0)
-    {
-        if (!is_numeric($limit) or !is_numeric($offset))
-            throw new InvalidArgumentException('Limit should be specified using numerics');
-
-        $this->limit = array($limit, $offset);
     }
 
     /**
@@ -246,20 +229,6 @@ class BasicQuery
         }
 
         return " ORDER BY ".implode(", ", $sqls);
-    }
-
-    /**
-     * Returns "LIMIT" clause which can be used in various queries
-     *
-     * @param array $parameters 
-     * @return void
-     */
-    protected function getLimit(array &$parameters)
-    {
-        if (null === $this->limit)
-            return "";
-
-        return " LIMIT ".$this->limit[0].' OFFSET '.$this->limit[1];
     }
 
     /**

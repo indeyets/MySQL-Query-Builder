@@ -32,6 +32,7 @@
  */
 class SelectQuery extends BasicQuery
 {
+    private $limit = null;
     private $selects = null;
     private $groupby = null;
     private $havings = null;
@@ -123,6 +124,22 @@ class SelectQuery extends BasicQuery
     }
 
     /**
+     * setup "LIMIT" clause of Query.
+     *
+     * @param integer $limit 
+     * @param integer $offset 
+     * @return void
+     * @throws InvalidArgumentException
+     */
+    public function setLimit($limit, $offset=0)
+    {
+        if (!is_numeric($limit) or !is_numeric($offset))
+            throw new InvalidArgumentException('Limit should be specified using numerics');
+
+        $this->limit = array($limit, $offset);
+    }
+
+    /**
      * Accessor, which returns internal "GROUP BY" array
      *
      * @return array
@@ -132,7 +149,7 @@ class SelectQuery extends BasicQuery
         return $this->groupby;
     }
 
-    protected function getSql(&$parameters)
+    protected function getSql(array &$parameters)
     {
         return $this->getSelect($parameters).
             $this->getFrom($parameters).
@@ -142,6 +159,20 @@ class SelectQuery extends BasicQuery
             $this->getHaving($parameters).
             $this->getOrderby($parameters).
             $this->getLimit($parameters);
+    }
+
+    /**
+     * Returns "LIMIT" clause which can be used in various queries
+     *
+     * @param array $parameters 
+     * @return void
+     */
+    protected function getLimit(array &$parameters)
+    {
+        if (null === $this->limit)
+            return "";
+
+        return " LIMIT ".$this->limit[0].' OFFSET '.$this->limit[1];
     }
 
     private function getSelect(&$parameters)
@@ -160,7 +191,7 @@ class SelectQuery extends BasicQuery
         return $res.implode(", ", $sqls);
     }
 
-    protected function getFrom(&$parameters)
+    protected function getFrom(array &$parameters)
     {
         $froms = array();
         for ($i = 0; $i < count($this->from); $i++) {
