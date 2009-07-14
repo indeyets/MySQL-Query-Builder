@@ -175,6 +175,16 @@ class SelectQuery extends BasicQuery
         return " LIMIT ".$this->limit[0].' OFFSET '.$this->limit[1];
     }
 
+    /**
+     * Returns number of columns, which will be returned by query
+     *
+     * @return integer
+     */
+    public function countSelects()
+    {
+        return count($this->selects);
+    }
+
     private function getSelect(&$parameters)
     {
         $res = 'SELECT ';

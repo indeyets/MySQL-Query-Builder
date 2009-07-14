@@ -355,13 +355,21 @@ class Condition implements MQB_Condition
             throw new RangeException('invalid comparator-function');
 
         if ($comparison == 'in') {
-            if (!is_array($right)) {
-                throw new InvalidArgumentException('Right-op has to be ARRAY, if comparison is "in"');
-            }
+            if (is_array($right)) {
+                // IN (1,2,3,4)
+                foreach ($right as $value) {
+                    if (!is_numeric($value)) {
+                        throw new InvalidArgumentException('Right-op has to be array consisting of NUMERIC VALUES, if comparison is "in"');
+                    }
+                }
+            } else {
+                // IN (SELECT …)
+                if (!is_object($right) or !($right instanceof SelectQuery)) {
+                    throw new InvalidArgumentException('Right-op has to be object of class SelectQuery, if comparison is "in"');
+                }
 
-            foreach ($right as $value) {
-                if (!is_numeric($value)) {
-                    throw new InvalidArgumentException('Right-op has to be array consisting of NUMERIC VALUES, if comparison is "in"');
+                if ($right->countSelects() != 1) {
+                    throw new InvalidArgumentException('Right-op has to be query with one field, if comparison is "in"');
                 }
             }
         } elseif (!in_array($comparison, $this->validSingulars)) {
@@ -385,9 +393,13 @@ class Condition implements MQB_Condition
         } elseif ($comparison == '<>' and null === $this->content[2]) {
             return $leftpart." IS NOT NULL";
         } elseif ($comparison == 'in') {
-            $rightpart = $this->content[2];
+            $right = $this->content[2];
 
-            return $leftpart." IN (".implode(', ', $rightpart).")";
+            if (is_array($right)) {
+                return $leftpart." IN (".implode(', ', $right).")";
+            } elseif ($right instanceof SelectQuery) {
+                return $leftpart.' IN ('.$right->sql().')';
+            }
         } else {
             $rightpart = $this->content[2]->getSql($parameters);
 

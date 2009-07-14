@@ -222,4 +222,16 @@ class SelectQueryTest extends PHPUnit_Framework_TestCase
 
         $this->assertEquals('SELECT `t0`.* FROM `test` AS `t0` USE INDEX (`abc`, `def`)', $q->sql());
     }
+
+    public function testSelectWithSubquery()
+    {
+        $field1 = new Field('id', 0);
+        $subq = new SelectQuery(array('sub_test'));
+        $subq->setSelect(array($field1));
+
+        $q = new SelectQuery(array('test'));
+        $q->setWhere(new Condition('in', new Field('id'), $subq));
+
+        $this->assertEquals('SELECT `t0`.* FROM `test` AS `t0` WHERE `t0`.`id` IN (SELECT `t0`.`id` FROM `sub_test` AS `t0`)', $q->sql());
+    }
 }
