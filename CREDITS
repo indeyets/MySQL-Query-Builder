@@ -1,4 +1,9 @@
 MySQL Query Builder
 
-Alexey Zakhlestine <indeyets@gmail.com>
-Konstantin Sedov <kostya.online@gmail.com>
+Major contributions:
+	Alexey Zakhlestine <indeyets@gmail.com>
+	Konstantin Sedov <kostya.online@gmail.com>
+
+Subquery support:
+	Igor Vasilcovsky <vasilcovsky@gmail.com>
+	Maxim Ponomariov <m.ponomariov@deeplace.md>
