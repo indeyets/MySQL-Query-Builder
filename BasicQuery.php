@@ -247,10 +247,14 @@ abstract class BasicQuery
      *
      * @return string
      */
-    public function sql()
+    public function sql(array &$parameters = null)
     {
         if (null === $this->sql) {
-            $this->parameters = array();
+            if (is_array($parameters)) {
+                $this->parameters = &$parameters;
+            } else {
+                $this->parameters = array();
+            }
             $this->sql = $this->getSql($this->parameters);
         }
 

@@ -234,4 +234,33 @@ class SelectQueryTest extends PHPUnit_Framework_TestCase
 
         $this->assertEquals('SELECT `t0`.* FROM `test` AS `t0` WHERE `t0`.`id` IN (SELECT `t0`.`id` FROM `sub_test` AS `t0`)', $q->sql());
     }
+
+    /**
+     * testing nested subquery (query, which uses subquery, which uses subquery) and checking, that conditions are correct (for use in prepared queries)
+     */
+    public function testSubqueryWithConditions()
+    {
+        $field1 = new Field('id', 0);
+
+        $subq2 = new SelectQuery(array('bans'));
+        $subq2->setSelect(array($field1));
+        $subq2->setWhere(new Condition('=', new Field('abc'), 10));
+
+        $subq = new SelectQuery(array('users'));
+        $subq->setSelect(array($field1));
+        $subq->setWhere(new AndOp(
+            new Condition('>', new Field('age'), 14),
+            new Condition('in', new Field('id'), $subq2),
+            new Condition('=', new Field('regdt'), '2009-01-01')
+        ));
+
+        $q = new SelectQuery(array('posts'));
+        $q->setWhere(new AndOp(
+            new Condition('>', new Field('comment'), 1),
+            new Condition('in', new Field('user_id'), $subq),
+            new Condition('=', new Field('funny'), 1)
+        ));
+
+        $this->assertEquals('SELECT `t0`.* FROM `posts` AS `t0` WHERE (`t0`.`comment` > :p1 AND `t0`.`user_id` IN (SELECT `t0`.`id` FROM `users` AS `t0` WHERE (`t0`.`age` > :p2 AND `t0`.`id` IN (SELECT `t0`.`id` FROM `bans` AS `t0` WHERE `t0`.`abc` = :p3) AND `t0`.`regdt` = :p4)) AND `t0`.`funny` = :p5)', $q->sql());
+    }
 }

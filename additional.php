@@ -398,7 +398,7 @@ class Condition implements MQB_Condition
             if (is_array($right)) {
                 return $leftpart." IN (".implode(', ', $right).")";
             } elseif ($right instanceof SelectQuery) {
-                return $leftpart.' IN ('.$right->sql().')';
+                return $leftpart.' IN ('.$right->sql($parameters).')';
             }
         } else {
             $rightpart = $this->content[2]->getSql($parameters);
